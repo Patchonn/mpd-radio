@@ -2,9 +2,10 @@
 import muirc
 
 class IrcConnection(muirc.Connection):
-    def __init__(self, host, port, nick, ssl=False):
+    def __init__(self, host, port, nick, password=None, ssl=False):
         self._nick = nick
         super(IrcConnection, self).__init__((host, port), use_ssl=ssl)
+        if password is not None: self.PASS(password)
         self.nick(nick)
         self.user(nick, '0', '*', nick)
         

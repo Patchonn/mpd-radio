@@ -13,11 +13,6 @@ from clients.irc import IrcConnection, Nick
 config = common.get_config('MPD_RADIO_CONFIG')
 logger = common.get_logger('bot', level=config.LOG_LEVEL)
 
-CMDCH = '!'
-SEARCH_LIMIT = 3
-REQUEST_TIMEOUT = 3600 # 1 hour
-SKIP_VOTES = 5
-
 class SongInfo(clients.mpd.SongInfo):
     def __init__(self, song, elapsed=None):
         super(SongInfo, self).__init__(song, elapsed)
@@ -79,13 +74,16 @@ class IrcBot(object):
                 target = msg['params'][0]
                 message = msg['params'][1]
                 
+                if target[0] != '#':
+                    target = msg['nick']
+                
                 # minecraft bots support
                 match = re.match(r'^<([^>]+)> (.*)$', message)
                 if match is not None:
                     nick = Nick(match.group(1), msg['nick'])
                     message = match.group(2)
                 
-                if message.startswith(CMDCH):
+                if message.startswith(config.IRCBOT_CMD):
                     args = message.split(' ')
                     
                     cmd = args[0][1:]
@@ -157,7 +155,7 @@ class IrcBot(object):
         self._request_timeout[nick] = int(time.time())
     
     def _on_nick_change(self, nick, new_nick):
-        self._request_timeout[new_nick] = self._request_timeout[nick]
+        self._request_timeout[new_nick] = self._request_timeout.get(nick, None)
     
     def _on_quit(self, nick, target):
         if self._admin is not None and nick == self._admin:
@@ -181,17 +179,29 @@ class IrcBot(object):
         
         info = SongInfo(current)
         
+        # TODO this url should come from somewhere else
         host = config.get('MUSIC_HOST', None)
         if host is not None:
             url = '{}/{}'.format(host, urllib.parse.quote(info.filename))
             self._irc.privmsg(target, info.url)
+    
+    def filename(self, nick, target):
+        current = self._mpd.currentsong()
+
+        info = SongInfo(current)
+
+        if host is not None:
+            self._irc.privmsg(target, info.filename)
     
     def search(self, nick, target, *args):
         tag = ' '.join(args)
         
         self._search_idx = []
         self._search_file = {}
-        result = self._mpd.search('any', tag)
+        result = list(self._mpd.search('any', tag))
+        
+        if len(result) < config.IRCBOT_SEARCH_LIMIT:
+            result.extend(self._mpd.search('file', tag))
         
         # filter duplicates
         used = set()
@@ -200,7 +210,7 @@ class IrcBot(object):
         if len(result) > 0:
             i = 0
             for t in result:
-                if i >= SEARCH_LIMIT: break
+                if i >= config.IRCBOT_SEARCH_LIMIT: break
                 
                 info = SongInfo(t)
                 
@@ -227,7 +237,7 @@ class IrcBot(object):
         
         if info is not None:
             last_request = self._request_timeout.get(nick, None)
-            next_request = last_request + REQUEST_TIMEOUT if last_request is not None else None
+            next_request = last_request + config.IRCBOT_REQUEST_TIMEOUT if last_request is not None else None
             now = int(time.time())
             
             if last_request is None or now > next_request or nick == self._admin:
@@ -252,7 +262,7 @@ class IrcBot(object):
             info = SongInfo(current)
             
             if self._skip_vote is None or self._skip_vote.song != info:
-                self._skip_vote = Vote(info, nick, SKIP_VOTES)
+                self._skip_vote = Vote(info, nick, config.IRCBOT_SKIP_VOTES)
                 self._irc.privmsg(target, 'skip vote started for: {}'.format(info))
             
             else:
@@ -275,7 +285,7 @@ def main():
         'm3u8': config.get('PLAYLIST_LINK', None)
     }
     
-    irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, ssl=True)
+    irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, password=config.IRC_PASS, ssl=True)
     irc.join(config.IRC_CHANNEL)
     mpd = MpdConnection(config.MPD_HOST, config.MPD_PORT, config.MPD_PASSWORD, iterate=True)
     bot = IrcBot(irc, mpd, extra=extra_commands)
