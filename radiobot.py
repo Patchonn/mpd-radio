@@ -130,6 +130,9 @@ class IrcBot(object):
                 kicked_by = msg['params'][2]
                 self._on_kick(nick, target, kicked, kicked_by)
     
+    def _echo(self, nick, target, message):
+        self._irc.privmsg(target, message)
+    
     def auth(self, nick, target, code):
         if code == self._auth_code:
             self._auth_code = None
@@ -289,6 +292,12 @@ def main():
     irc.join(config.IRC_CHANNEL)
     mpd = MpdConnection(config.MPD_HOST, config.MPD_PORT, config.MPD_PASSWORD, iterate=True)
     bot = IrcBot(irc, mpd, extra=extra_commands)
+    
+    #bot.playing(None, config.IRC_CHANNEL)
+    greeting = config.get("IRCBOT_GREETING", None)
+    if greeting is not None:
+        bot._echo(None, config.IRC_CHANNEL, greeting)
+        
     bot._loop()
 #
 
