@@ -31,9 +31,13 @@ class mpdshuffle(object):
     def _window_next(self):
         logger.info('getting a track from the window')
         while len(self.window) < self.max_window + 1:
-            track = random.sample(self.pool, 1)[0]
-            self.pool.remove(track)
-            self.window.append(track)
+            if len(self.pool) > 0:
+                track = random.sample(self.pool, 1)[0]
+                self.pool.remove(track)
+                self.window.append(track)
+            
+            else:
+                logger.warn('no track found in the pool, playlist might end up looping')
         
         #logger.debug('window: %s', repr(self.window))
         track = self.window.pop(0)
@@ -87,6 +91,7 @@ class mpdshuffle(object):
         if removed:
             logger.debug('database removed tracks: %s', repr(removed))
             self.window = [t for t in self.window if t in removed]
+            self.pool = self.pool - removed
         
         # add new tracks to pool
         if added:
@@ -139,6 +144,7 @@ class mpdshuffle(object):
                 if added:
                     logger.debug('playlist added tracks: %s', repr(added))
                     self.window = [t for t in self.window if t not in added]
+                    self.pool = self.pool.update(added)
                 
                 # replace removed tracks if applicable
                 if removed:
