@@ -144,7 +144,7 @@ class mpdshuffle(object):
                 if added:
                     logger.debug('playlist added tracks: %s', repr(added))
                     self.window = [t for t in self.window if t not in added]
-                    self.pool = self.pool.update(added)
+                    self.pool.update(added)
                 
                 # replace removed tracks if applicable
                 if removed:
