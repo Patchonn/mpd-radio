@@ -245,7 +245,7 @@ class IrcBot(object):
         else:
             if len(results) > 0:
                 self._user_search[nick] = []
-                for info, i in zip(results, len(results)):
+                for info, i in zip(results, range(len(results))):
                     self._user_search[nick].append(info)
                     self._irc.privmsg(target, '{}: {}'.format(i, info))
             
