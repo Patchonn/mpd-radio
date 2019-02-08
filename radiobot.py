@@ -208,9 +208,9 @@ class IrcBot(object):
         
         # filter duplicates
         used = set()
-        results = [SongInfo(x) for x in results if x['file'] not in used and (used.add(x['file']) or True)]
+        results = [x for x in results if x['file'] not in used and (used.add(x['file']) or True)]
         
-        return results[:config.IRCBOT_SEARCH_LIMIT]
+        return [SongInfo(x) for x in results[:config.IRCBOT_SEARCH_LIMIT]]
     
     def _request(self, nick, target, info):
         last_request = self._request_timeout.get(nick, None)
@@ -245,13 +245,8 @@ class IrcBot(object):
         else:
             if len(results) > 0:
                 self._user_search[nick] = []
-                for t, i in zip(results, len(results)):
-                    if i >= config.IRCBOT_SEARCH_LIMIT: break
-                    
-                    info = SongInfo(t)
-                    
+                for info, i in zip(results, len(results)):
                     self._user_search[nick].append(info)
-                    
                     self._irc.privmsg(target, '{}: {}'.format(i, info))
             
             else:
