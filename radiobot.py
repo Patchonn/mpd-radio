@@ -89,7 +89,7 @@ class IrcBot(object):
                     cmd = args[0][1:]
                     args = args[1:]
                     
-                    if cmd[0] != '_':
+                    if cmd[0] != '_' or nick == self._admin:
                         func = getattr(self, cmd, None)
                         reply = self._extra.get(cmd, None)
                         if func is not None:
@@ -194,6 +194,10 @@ class IrcBot(object):
 
         if host is not None:
             self._irc.privmsg(target, info.filename)
+    
+    def update(self, nick, target):
+        self._mpd.update()
+        self._irc.privmsg(target, 'the database was updated')
     
     def _add(self, file):
         status = self._mpd.status()
@@ -302,6 +306,10 @@ def main():
     bot._loop()
 #
 
+import traceback
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except:
+        logger.exception('exiting')
 
