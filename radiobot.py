@@ -28,20 +28,27 @@ class Vote(object):
         self.starter = nick
         self.required = required
         self.voted = set()
+        self.unvoted = set()
         self.banned = set()
         
-        if nick is not None:
-            self.voted.add(nick)
+        #if nick is not None:
+        #    self.voted.add(nick)
     
     def vote(self, nick):
         if nick not in self.banned:
+            self.unvoted.discard(nick)
             self.voted.add(nick)
     
+    def unvote(self, nick):
+        if nick not in self.banned:
+            self.voted.discard(nick)
+            self.unvoted.add(nick)
+    
     def votes(self):
-        return len(self.voted)
+        return len(self.voted) - len(self.unvoted)
     
     def done(self):
-        return len(self.voted) >= self.required
+        return self.votes() >= self.required
     
     def ban(self, nick):
         self.voted.add(nick)
@@ -271,6 +278,7 @@ class IrcBot(object):
             
             if self._skip_vote is None or self._skip_vote.song != info:
                 self._skip_vote = Vote(info, nick, config.IRCBOT_SKIP_VOTES)
+                self._skip_vote.vote(nick)
                 self._irc.privmsg(target, 'skip vote started for: {}'.format(info))
             
             else:
@@ -283,6 +291,20 @@ class IrcBot(object):
                 
             else:
                 self._irc.privmsg(target, 'skip vote: {}'.format(self._skip_vote))
+    
+    def unskip(self, nick, target):
+        current = self._mpd.currentsong()
+        info = SongInfo(current)
+        
+        if self._skip_vote is None or self._skip_vote.song != info:
+            self._skip_vote = Vote(info, nick, config.IRCBOT_SKIP_VOTES)
+            self._skip_vote.unvote(nick)
+            self._irc.privmsg(target, 'skip vote started for: {}'.format(info))
+        
+        else:
+            self._skip_vote.vote(nick)
+        
+        self._irc.privmsg(target, 'skip vote: {}'.format(self._skip_vote))
     
 #
 
