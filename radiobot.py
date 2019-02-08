@@ -146,8 +146,7 @@ class IrcBot(object):
     
     
     def _init(self):
-        self._search_idx = []
-        self._search_file = {}
+        self._user_search = {}
         
         self._request_timeout = {}
         self._skip_vote = None
@@ -196,60 +195,66 @@ class IrcBot(object):
         if host is not None:
             self._irc.privmsg(target, info.filename)
     
-    def search(self, nick, target, *args):
-        tag = ' '.join(args)
-        
-        self._search_idx = []
-        self._search_file = {}
-        result = list(self._mpd.search('any', tag))
-        
-        if len(result) < config.IRCBOT_SEARCH_LIMIT:
-            result.extend(self._mpd.search('file', tag))
-        
-        # filter duplicates
-        used = set()
-        result = [x for x in result if x['file'] not in used and (used.add(x['file']) or True)]
-        
-        if len(result) > 0:
-            i = 0
-            for t in result:
-                if i >= config.IRCBOT_SEARCH_LIMIT: break
-                
-                info = SongInfo(t)
-                
-                self._search_idx.append(info)
-                self._search_file[info.filename] = info
-                
-                self._irc.privmsg(target, '{}: {}'.format(i, info))
-                
-                i += 1
-            
-        else:
-            self._irc.privmsg(target, 'nothing found')
-    
     def _add(self, file):
         status = self._mpd.status()
         songid = self._mpd.addid(file)
         self._mpd.moveid(songid, int(status['song']) + 1)
     
-    def request(self, nick, target, *args):
-        id = args[0] if len(args) == 1 else ' '.join(args)
+    def _search(self, tag):
+        results = list(self._mpd.search('any', tag))
         
-        try: info = self._search_idx[int(id)]
-        except: info = self._search_file.get(id, None)
+        if len(results) < config.IRCBOT_SEARCH_LIMIT:
+            results.extend(self._mpd.search('file', tag))
+        
+        # filter duplicates
+        used = set()
+        results = [x for x in results if x['file'] not in used and (used.add(x['file']) or True)]
+        
+        return results[:config.IRCBOT_SEARCH_LIMIT]
+    
+    def _request(self, nick, target, info):
+        last_request = self._request_timeout.get(nick, None)
+        next_request = last_request + config.IRCBOT_REQUEST_TIMEOUT if last_request is not None else None
+        now = int(time.time())
+        
+        if last_request is None or now > next_request or nick == self._admin:
+            self._add(info.file)
+            self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
+            self._request_timeout[nick] = now
+            
+        else:
+            self._irc.privmsg(target, 'you can only request another song after {}'.format(common.TimeDiff(next_request, now)))
+    
+    def request(self, nick, target, *args):
+        arg = args[0] if len(args) == 1 else ' '.join(args)
+        
+        try:
+            id = int(arg)
+            info = self._user_search[nick][id]
+            
+        except:
+            results = self._search(arg)
+            if len(results) == 1:
+                info = results[0]
+        
         
         if info is not None:
-            last_request = self._request_timeout.get(nick, None)
-            next_request = last_request + config.IRCBOT_REQUEST_TIMEOUT if last_request is not None else None
-            now = int(time.time())
+            self._request(nick, target, info)
             
-            if last_request is None or now > next_request or nick == self._admin:
-                self._add(info.file)
-                self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
-                self._request_timeout[nick] = now
-                
+        else:
+            if len(results) > 0:
+                self._user_search[nick] = []
+                for t, i in zip(results, len(results)):
+                    if i >= config.IRCBOT_SEARCH_LIMIT: break
+                    
+                    info = SongInfo(t)
+                    
+                    self._user_search[nick].append(info)
+                    
+                    self._irc.privmsg(target, '{}: {}'.format(i, info))
+            
             else:
-                self._irc.privmsg(target, 'you can only request another song after {}'.format(common.TimeDiff(next_request, now)))
+                self._irc.privmsg(target, 'nothing found')
     
     def _skip(self):
         self._mpd.next()
