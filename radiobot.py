@@ -223,6 +223,21 @@ class IrcBot(object):
         
         return [SongInfo(x) for x in results[:config.IRCBOT_SEARCH_LIMIT]]
     
+    def search(self, nick, target, *args):
+        tag = ' '.join(args)
+        
+        self._user_search[nick] = []
+        results = self._search(tag)
+        
+        if len(results) > 0:
+            self._user_search[nick] = []
+            for info, i in zip(results, range(len(results))):
+                self._user_search[nick].append(info)
+                self._irc.privmsg(target, '{}: {}'.format(i, info))
+        
+        else:
+            self._irc.privmsg(target, 'nothing found')
+    
     def _request(self, nick, target, info):
         last_request = self._request_timeout.get(nick, None)
         next_request = last_request + config.IRCBOT_REQUEST_TIMEOUT if last_request is not None else None
