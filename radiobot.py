@@ -178,7 +178,7 @@ class IrcBot(object):
     def help(self, nick, target, command=None):
         'get help'
         if command is None:
-            commands = [cmd for cmd in self if cmd[0] != '_']
+            commands = [cmd for cmd in dir(self) if cmd[0] != '_']
             commandlist = ', '.join(commands)
             self._irc.privmsg(target, 'available commands: {}'.format(commandlist))
             self._irc.privmsg(target, 'use {}help <command> to get help for a specific command'.format(config.IRCBOT_CMD))
@@ -186,7 +186,7 @@ class IrcBot(object):
         else:
             cmd = getattr(self, command, None)
             if cmd is not None:
-                doc = getacmd.__doc__
+                doc = cmd.__doc__
                 if doc is not None:
                     self._irc.privmsg(target, '{}: {}'.format(cmd, doc))
                     
