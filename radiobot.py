@@ -188,10 +188,10 @@ class IrcBot(object):
             if cmd is not None:
                 doc = cmd.__doc__
                 if doc is not None:
-                    self._irc.privmsg(target, '{}: {}'.format(cmd, doc))
+                    self._irc.privmsg(target, '{}: {}'.format(command, doc))
                     
                 else:
-                    self._irc.privmsg(target, '{}: no help was given')
+                    self._irc.privmsg(target, '{}: no help was given'.format(command))
                 
             else:
                 self._irc.privmsg(target, 'that command does not exist')
