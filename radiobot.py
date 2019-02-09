@@ -146,10 +146,10 @@ class IrcBot(object):
             self._admin = nick
             self._irc.privmsg(target, '{}~'.format(nick))
     
-    def deauth(self, nick, target=None):
-        if nick == self._admin:
-            self._admin = None
-            self._gen_auth()
+    #def deauth(self, nick, target=None):
+    #    if nick == self._admin:
+    #        self._admin = None
+    #        self._gen_auth()
     
     
     def _init(self):
@@ -175,7 +175,29 @@ class IrcBot(object):
         if kicked == self._nick:
             self._irc.join(target)
     
+    def help(self, nick, target, command=None):
+        'get help'
+        if command is None:
+            commands = [cmd for cmd in self if cmd[0] != '_']
+            commandlist = ', '.join(commands)
+            self._irc.privmsg(target, 'available commands: {}'.format(commandlist))
+            self._irc.privmsg(target, 'use {}help <command> to get help for a specific command'.format(config.IRCBOT_CMD))
+        
+        else:
+            cmd = getattr(self, command, None)
+            if cmd is not None:
+                doc = getacmd.__doc__
+                if doc is not None:
+                    self._irc.privmsg(target, '{}: {}'.format(cmd, doc))
+                    
+                else:
+                    self._irc.privmsg(target, '{}: no help was given')
+                
+            else:
+                self._irc.privmsg(target, 'that command does not exist')
+    
     def playing(self, nick, target):
+        'prints the currently playing song'
         status = self._mpd.status()
         current = self._mpd.currentsong()
         
@@ -184,6 +206,7 @@ class IrcBot(object):
         self._irc.privmsg(target, 'now playing: {}'.format(info))
     
     def download(self, nick, target):
+        'prints a link to download the current song'
         current = self._mpd.currentsong()
         
         info = SongInfo(current)
@@ -194,7 +217,7 @@ class IrcBot(object):
             url = '{}/{}'.format(host, urllib.parse.quote(info.filename))
             self._irc.privmsg(target, info.url)
     
-    def filename(self, nick, target):
+    def _filename(self, nick, target):
         current = self._mpd.currentsong()
 
         info = SongInfo(current)
@@ -202,7 +225,7 @@ class IrcBot(object):
         if host is not None:
             self._irc.privmsg(target, info.filename)
     
-    def update(self, nick, target):
+    def _update(self, nick, target):
         self._mpd.update()
         self._irc.privmsg(target, 'the database was updated')
     
@@ -224,6 +247,7 @@ class IrcBot(object):
         return [SongInfo(x) for x in results[:config.IRCBOT_SEARCH_LIMIT]]
     
     def search(self, nick, target, *args):
+        'searches for songs available in the database'
         tag = ' '.join(args)
         
         self._user_search[nick] = []
@@ -252,6 +276,7 @@ class IrcBot(object):
             self._irc.privmsg(target, 'you can only request another song after {}'.format(common.TimeDiff(next_request, now)))
     
     def request(self, nick, target, *args):
+        ''
         arg = args[0] if len(args) == 1 else ' '.join(args)
         
         info = None
@@ -282,6 +307,7 @@ class IrcBot(object):
         self._mpd.next()
     
     def skip(self, nick, target):
+        'casts a vote to skip the current song'
         if nick == self._admin:
             self._skip()
             self._skip_vote = None
