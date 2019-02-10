@@ -6,7 +6,7 @@ import common
 from mpd import MPDClient, CommandError
 
 config = common.get_config('MPD_RADIO_CONFIG')
-logger = common.get_logger('bot', level=config.LOG_LEVEL)
+logger = common.get_logger('shuffle', level=config.LOG_LEVEL, filename=config.get('LOG_FILE', None))
 
 class mpdshuffle(object):
     def __init__(self, mpd, buffer, window_size):
@@ -29,7 +29,7 @@ class mpdshuffle(object):
     
     
     def _window_next(self):
-        logger.info('getting a track from the window')
+        logger.debug('getting a track from the window')
         while len(self.window) < self.max_window + 1:
             if len(self.pool) > 0:
                 track = random.sample(self.pool, 1)[0]
@@ -42,7 +42,7 @@ class mpdshuffle(object):
         
         #logger.debug('window: %s', repr(self.window))
         track = self.window.pop(0)
-        logger.debug('chosen track: %s', track)
+        logger.info('queuing %s', track)
         self.pool.add(track)
         
         # not needed since the window auto adjusts itself with every playing track
@@ -60,7 +60,7 @@ class mpdshuffle(object):
     def _enqueue(self, current):
         if current > self.buffer:
             # remove any extra tracks at the beginning of the playlist
-            logger.info('removing %d extra tracks from the beginning of the playlist', current - self.buffer)
+            logger.debug('removing %d extra tracks from the beginning of the playlist', current - self.buffer)
             self.mpd.delete((0, current - self.buffer))
             self.playlist = self.playlist[current - self.buffer:]
             current -= (current - self.buffer)
@@ -69,7 +69,7 @@ class mpdshuffle(object):
         
         while len(self.playlist) - current - 1 < self.buffer:
             # get a track from the window, add it to the playlist
-            logger.info('enqueueing another track')
+            logger.debug('enqueueing another track')
             track = self._window_next()
             self.mpd.add(track)
             self.playlist.append(track)
@@ -170,6 +170,10 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+        
+    except KeyboardInterrupt as e:
+        logger.info('got SIGTERM, exiting')
+        
     except:
-        logger.exception('exiting')
+        logger.exception('uncaught exception')
 

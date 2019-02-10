@@ -11,7 +11,7 @@ from clients.mpd import MpdConnection
 from clients.irc import IrcConnection, Nick
 
 config = common.get_config('MPD_RADIO_CONFIG')
-logger = common.get_logger('bot', level=config.LOG_LEVEL)
+logger = common.get_logger('bot', level=config.LOG_LEVEL, filename=config.get('LOG_FILE', None))
 
 class SongInfo(clients.mpd.SongInfo):
     def __init__(self, song, elapsed=None):
@@ -73,6 +73,7 @@ class IrcBot(object):
             f.write(self._auth_code)
     
     def _loop(self):
+        logger.debug('loop start')
         for msg in self._irc:
             #logger.debug(msg)
             
@@ -115,7 +116,7 @@ class IrcBot(object):
             elif msg['command'] == '474':
                 # 474 => ban error
                 #{'nick': 'irc.neet.link', 'user': None, 'host': None, 'command': '474', 'params': ['radiobot', '#botdev', 'Cannot join channel (+b)']}
-                logger.error('I\'ve been banned, exiting')
+                logger.critical('I\'ve been banned, exiting')
                 break
                 
             elif msg['command'] == 'JOIN':
@@ -263,6 +264,7 @@ class IrcBot(object):
             self._irc.privmsg(target, 'nothing found')
     
     def _request(self, nick, target, info):
+        logger.info('{} requested by {} on {}'.format(info, nick, target))
         last_request = self._request_timeout.get(nick, None)
         next_request = last_request + config.IRCBOT_REQUEST_TIMEOUT if last_request is not None else None
         now = int(time.time())
@@ -304,6 +306,7 @@ class IrcBot(object):
                 self._irc.privmsg(target, 'nothing found')
     
     def _skip(self):
+        logger.info('skipping a song')
         self._mpd.next()
     
     def skip(self, nick, target):
@@ -316,6 +319,7 @@ class IrcBot(object):
         else:
             current = self._mpd.currentsong()
             info = SongInfo(current)
+            logger.info('vote to skip {} by {} on {}'.format(info, nick, target))
             
             if self._skip_vote is None or self._skip_vote.song != info:
                 self._skip_vote = Vote(info, nick, config.IRCBOT_SKIP_VOTES)
@@ -350,9 +354,9 @@ class IrcBot(object):
 #
 
 def main():
-    irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, password=config.IRC_PASS, ssl=True)
+    irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, password=config.get('IRC_PASS', None), ssl=True)
     irc.join(config.IRC_CHANNEL)
-    mpd = MpdConnection(config.MPD_HOST, config.MPD_PORT, config.MPD_PASSWORD, iterate=True)
+    mpd = MpdConnection(config.MPD_HOST, config.MPD_PORT, config.get('MPD_PASSWORD', None), iterate=True)
     bot = IrcBot(irc, mpd, extra=config.get('IRC_EXTRA', None))
     
     #bot.playing(None, config.IRC_CHANNEL)
@@ -367,6 +371,10 @@ import traceback
 if __name__ == '__main__':
     try:
         main()
+        
+    except KeyboardInterrupt as e:
+        logger.info('got SIGTERM, exiting')
+        
     except:
-        logger.exception('exiting')
+        logger.exception('uncaught exception')
 

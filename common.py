@@ -15,15 +15,24 @@ def get_config(env):
         return Module()
 #
 
-def get_logger(name, level=logging.DEBUG):
+def get_logger(name, level=logging.WARNING, filename=None):
     logger = logging.getLogger(name)
-    logger.setLevel(level)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-    ch.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s -- %(message)s', '%Y-%m-%d %H:%M:%S'))
-
-    logger.addHandler(ch)
+    logger.setLevel(logging.DEBUG)
+    
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s -- %(message)s', '%Y-%m-%d %H:%M:%S')
+    
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(formatter)
+    
+    logger.addHandler(console)
+    
+    if filename is not None:
+        file = logging.FileHandler(filename)
+        file.setLevel(level)
+        file.setFormatter(formatter)
+        
+        logger.addHandler(file)
     
     return logger
 #
