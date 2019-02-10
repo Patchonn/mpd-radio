@@ -96,7 +96,7 @@ class IrcBot(object):
                     cmd = args[0][1:]
                     args = args[1:]
                     
-                    if cmd[0] != '_' or nick == self._admin:
+                    if len(cmd) > 0 && cmd[0] != '_' or nick == self._admin:
                         func = getattr(self, cmd, None)
                         reply = self._extra.get(cmd, None)
                         if func is not None:
@@ -276,7 +276,7 @@ class IrcBot(object):
             self._irc.privmsg(target, 'you can only request another song after {}'.format(common.TimeDiff(next_request, now)))
     
     def request(self, nick, target, *args):
-        ''
+        'requests a song, the arguments are either the same as in search or the index of the song in the last result'
         arg = args[0] if len(args) == 1 else ' '.join(args)
         
         info = None
