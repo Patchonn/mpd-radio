@@ -96,7 +96,7 @@ class IrcBot(object):
                     cmd = args[0][1:]
                     args = args[1:]
                     
-                    if len(cmd) > 0 && cmd[0] != '_' or nick == self._admin:
+                    if len(cmd) > 0 and (cmd[0] != '_' or nick == self._admin):
                         func = getattr(self, cmd, None)
                         reply = self._extra.get(cmd, None)
                         if func is not None:
