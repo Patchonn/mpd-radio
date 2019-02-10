@@ -350,16 +350,10 @@ class IrcBot(object):
 #
 
 def main():
-    extra_commands = {
-        'stream': config.get('STREAM_LINK', None),
-        'radio': config.get('RADIO_LINK', None),
-        'm3u8': config.get('PLAYLIST_LINK', None)
-    }
-    
     irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, password=config.IRC_PASS, ssl=True)
     irc.join(config.IRC_CHANNEL)
     mpd = MpdConnection(config.MPD_HOST, config.MPD_PORT, config.MPD_PASSWORD, iterate=True)
-    bot = IrcBot(irc, mpd, extra=extra_commands)
+    bot = IrcBot(irc, mpd, extra=config.get('IRC_EXTRA', None))
     
     #bot.playing(None, config.IRC_CHANNEL)
     greeting = config.get("IRCBOT_GREETING", None)
