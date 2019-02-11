@@ -6,7 +6,7 @@ import common
 from mpd import MPDClient, CommandError
 
 config = common.get_config('MPD_RADIO_CONFIG')
-logger = common.get_logger('shuffle', level=config.LOG_LEVEL, filename=config.get('LOG_FILE', None))
+logger = common.get_logger(__name__, level=config.LOG_LEVEL, filename=config.get('LOG_FILE', None))
 
 class mpdshuffle(object):
     def __init__(self, mpd, buffer, window_size):

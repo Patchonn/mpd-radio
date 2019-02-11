@@ -11,7 +11,7 @@ from clients.mpd import MpdConnection
 from clients.irc import IrcConnection, Nick
 
 config = common.get_config('MPD_RADIO_CONFIG')
-logger = common.get_logger('bot', level=config.LOG_LEVEL, filename=config.get('LOG_FILE', None))
+logger = common.get_logger(__name__, level=config.LOG_LEVEL, filename=config.get('LOG_FILE', None))
 
 class SongInfo(clients.mpd.SongInfo):
     def __init__(self, song, elapsed=None):
@@ -304,6 +304,16 @@ class IrcBot(object):
             
             else:
                 self._irc.privmsg(target, 'nothing found')
+    
+    def _delete(self, nick, target):
+        if nick == self._admin:
+            root = config.get('MPD_MUSIC_ROOT', None)
+            if root is not None:
+                current = self._mpd.currentsong()
+                info = SongInfo(current)
+                
+                os.remove('{}/{}'.format(root, info.file))
+                self._mpd.update()
     
     def _skip(self):
         logger.info('skipping a song')
