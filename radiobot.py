@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
 import traceback
@@ -70,7 +71,7 @@ class IrcBot(object):
     def _gen_auth(self):
         self._auth_code = common.id_generator()
         with open('auth.txt', 'w+') as f:
-            f.write(self._auth_code)
+            f.write('{}\n'.format(self._auth_code))
     
     def _loop(self):
         logger.debug('loop start')
@@ -105,8 +106,8 @@ class IrcBot(object):
                                 func(nick, target, *args)
                             except Exception as e:
                                 # ignore non existent and wrong arguments
-                                #self._irc.privmsg(target, 'error: {}'.format(e))
-                                traceback.print_exc()
+                                logger.error(traceback.format_exc())
+                                #traceback.print_exc()
                                 pass
                             
                         elif reply is not None:
@@ -312,7 +313,10 @@ class IrcBot(object):
                 current = self._mpd.currentsong()
                 info = SongInfo(current)
                 
-                os.remove('{}/{}'.format(root, info.file))
+                file = '{}/{}'.format(root, info.file)
+                
+                logger.warning('deleting {}'.format(file))
+                os.remove(file)
                 self._mpd.update()
     
     def _skip(self):
