@@ -227,7 +227,8 @@ class IrcBot(object):
         if host is not None:
             self._irc.privmsg(target, info.filename)
     
-    def _update(self, nick, target):
+    def update(self, nick, target):
+        'forces a database update'
         self._mpd.update()
         self._irc.privmsg(target, 'the database was updated')
     
