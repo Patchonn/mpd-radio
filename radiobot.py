@@ -231,11 +231,6 @@ class IrcBot(object):
         self._mpd.update()
         self._irc.privmsg(target, 'the database was updated')
     
-    def _add(self, file):
-        status = self._mpd.status()
-        songid = self._mpd.addid(file)
-        self._mpd.moveid(songid, int(status['song']) + 1)
-    
     def _search(self, tag):
         results = list(self._mpd.search('any', tag))
         
@@ -271,7 +266,11 @@ class IrcBot(object):
         now = int(time.time())
         
         if last_request is None or now > next_request or nick == self._admin:
-            self._add(info.file)
+            status = self._mpd.status()
+            # only need the length
+            playlist = self.mpd.playlist()
+            songid = self._mpd.addid(file, len(playlist) - config.PLAYLIST_BUFFER)
+            
             self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
             self._request_timeout[nick] = now
             
