@@ -268,7 +268,7 @@ class IrcBot(object):
         if last_request is None or now > next_request or nick == self._admin:
             status = self._mpd.status()
             # only need the length
-            playlist = self.mpd.playlist()
+            playlist = self._mpd.playlist()
             songid = self._mpd.addid(file, len(playlist) - config.PLAYLIST_BUFFER)
             
             self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
@@ -305,7 +305,7 @@ class IrcBot(object):
             else:
                 self._irc.privmsg(target, 'nothing found')
     
-    def _delete(self, nick, target):
+    def delete(self, nick, target):
         if nick == self._admin:
             root = config.get('MPD_MUSIC_ROOT', None)
             if root is not None:
@@ -317,6 +317,7 @@ class IrcBot(object):
                 logger.warning('deleting {}'.format(file))
                 os.remove(file)
                 self._mpd.update()
+                self._irc.privmsg(target, 'skipped and deleted')
     
     def _skip(self):
         logger.info('skipping a song')

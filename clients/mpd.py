@@ -93,6 +93,9 @@ class SongInfo(object):
         if self.artist is not None:
             ss += ' | ' + self.artist
         
+        if self.album is not None:
+            ss += ' | ' + self.album
+        
         ss += ' | '
         
         if self.elapsed is not None:
