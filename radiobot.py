@@ -268,8 +268,8 @@ class IrcBot(object):
         if last_request is None or now > next_request or nick == self._admin:
             status = self._mpd.status()
             # only need the length
-            playlist = self._mpd.playlist()
-            songid = self._mpd.addid(file, len(playlist) - config.PLAYLIST_BUFFER)
+            playlist = list(self._mpd.playlist())
+            songid = self._mpd.addid(info.file, len(playlist) - config.PLAYLIST_BUFFER)
             
             self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
             self._request_timeout[nick] = now
