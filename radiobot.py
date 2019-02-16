@@ -104,7 +104,7 @@ class IrcBot(object):
                         if func is not None:
                             try:
                                 func(nick, target, *args)
-                            except Exception as e:
+                            except:
                                 # ignore non existent and wrong arguments
                                 logger.error(traceback.format_exc())
                                 #traceback.print_exc()
