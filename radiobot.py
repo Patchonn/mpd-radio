@@ -148,10 +148,10 @@ class IrcBot(object):
             self._admin = nick
             self._irc.privmsg(target, '{}~'.format(nick))
     
-    #def deauth(self, nick, target=None):
-    #    if nick == self._admin:
-    #        self._admin = None
-    #        self._gen_auth()
+    def deauth(self, nick, target=None):
+        if nick == self._admin:
+            self._admin = None
+            self._gen_auth()
     
     
     def _init(self):
