@@ -232,6 +232,13 @@ class IrcBot(object):
         self._mpd.update()
         self._irc.privmsg(target, 'the database was updated')
     
+    def _list(self, nick, target, results):
+        self._user_search[nick] = []
+        for info, i in zip(results, range(len(results))):
+            self._user_search[nick].append(info)
+            self._irc.privmsg(target, '{}: {}'.format(i, info))
+    #
+    
     def _search(self, tag):
         results = list(self._mpd.search('any', tag))
         
@@ -252,10 +259,7 @@ class IrcBot(object):
         results = self._search(tag)
         
         if len(results) > 0:
-            self._user_search[nick] = []
-            for info, i in zip(results, range(len(results))):
-                self._user_search[nick].append(info)
-                self._irc.privmsg(target, '{}: {}'.format(i, info))
+            self._list(nick, target, results)
         
         else:
             self._irc.privmsg(target, 'nothing found')
@@ -296,29 +300,50 @@ class IrcBot(object):
         if info is not None:
             self._request(nick, target, info)
             
-        else:
-            if len(results) > 0:
-                self._user_search[nick] = []
-                for info, i in zip(results, range(len(results))):
-                    self._user_search[nick].append(info)
-                    self._irc.privmsg(target, '{}: {}'.format(i, info))
+        elif len(results) > 0:
+            self._list(nick, target, results)
             
-            else:
-                self._irc.privmsg(target, 'nothing found')
+        else:
+            self._irc.privmsg(target, 'nothing found')
     
-    def delete(self, nick, target):
+    def _delete(self, info):
+        root = config.get('MPD_MUSIC_ROOT', None)
+        if root is not None:
+            file = '{}/{}'.format(root, info.file)
+            
+            logger.warning('deleting {}'.format(file))
+            os.remove(file)
+            self._mpd.update()
+    
+    def delete(self, nick, target, *args):
         if nick == self._admin:
-            root = config.get('MPD_MUSIC_ROOT', None)
-            if root is not None:
+            info = None
+            
+            if len(args) == 0:
                 current = self._mpd.currentsong()
                 info = SongInfo(current)
                 
-                file = '{}/{}'.format(root, info.file)
+            else:
+                arg = args[0] if len(args) == 1 else ' '.join(args)
+                try:
+                    id = int(arg)
+                    info = self._user_search[nick][id]
+                    
+                except:
+                    results = self._search(arg)
+                    if len(results) == 1:
+                        info = results[0]
+            #
+            
+            if info is not None:
+                self._delete(info)
+                self._irc.privmsg(target, 'deleted')
                 
-                logger.warning('deleting {}'.format(file))
-                os.remove(file)
-                self._mpd.update()
-                self._irc.privmsg(target, 'skipped and deleted')
+            elif len(results) > 0:
+                self._list(nick, target, results)
+                
+            else:
+                self._irc.privmsg(target, 'nothing found')
     
     def _skip(self):
         logger.info('skipping a song')
