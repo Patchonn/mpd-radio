@@ -133,7 +133,6 @@ class IrcBot(object):
                 self._on_quit(nick, target)
                 
             elif msg['command'] == 'KICK':
-                ['#botdev', 'radiobot', 'myon']
                 target = msg['params'][0]
                 kicked = msg['params'][1]
                 kicked_by = msg['params'][2]
