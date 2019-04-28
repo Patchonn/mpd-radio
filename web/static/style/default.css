@@ -1,0 +1,11 @@
+
+/* colors */
+
+:root {
+    --bg-color: #042744;
+    --main-color: #ababbe;
+    --secondary-color: #2f2f3c;
+    --border-color: #ababbe;
+    --highlight: #79c2ff;
+    --selection: #22446a;
+}
