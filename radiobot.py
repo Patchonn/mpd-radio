@@ -263,6 +263,13 @@ class IrcBot(object):
         else:
             self._irc.privmsg(target, 'nothing found')
     
+    def encore(self, nick, target):
+        current = self._mpd.currentsong()
+        info = SongInfo(current)
+        
+        self._mpd.addid(info.file, config.PLAYLIST_BUFFER + 1)
+        self._irc.privmsg(target, 'song will be replayed: {}'.format(info))
+    
     def _request(self, nick, target, info):
         logger.info('{} requested by {} on {}'.format(info, nick, target))
         last_request = self._request_timeout.get(nick, None)
@@ -273,7 +280,7 @@ class IrcBot(object):
             status = self._mpd.status()
             # only need the length
             playlist = list(self._mpd.playlist())
-            songid = self._mpd.addid(info.file, len(playlist) - config.PLAYLIST_BUFFER)
+            self._mpd.addid(info.file, len(playlist) - config.PLAYLIST_BUFFER)
             
             self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
             self._request_timeout[nick] = now
