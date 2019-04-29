@@ -14,7 +14,7 @@ class slider {
         this.display = el.firstElementChild;
         this.cb = cb;
         
-        if(def) this.setWidth(def);
+        if(def && !isNaN(def)) this.setWidth(def);
         
         this.mouse_down = false;
         this.parent.addEventListener("mousedown", (ev) => {
@@ -325,9 +325,9 @@ class Radio {
         this.recent = [];
         this.queue = [];
         
-        let vol = localStorage.getItem("volume");
-        let muted = localStorage.getItem("muted");
-        if(vol) this.e_audio.volume = parseFloat(vol);
+        let vol = parseFloat(localStorage.getItem("volume"));
+        let muted = localStorage.getItem("muted") === "true";
+        if(!isNaN(vol)) this.e_audio.volume = vol;
         new slider(document.getElementById("volume"), (vol) => {
             this.e_audio.volume = vol;
             localStorage.setItem("volume", vol);
