@@ -179,7 +179,7 @@ class RadioUploader {
                 }
             }, false);
             xhr.addEventListener("error", function(e){
-                reject(Error(e));
+                reject(new Error(e));
             }, false);
         });
         
@@ -189,7 +189,7 @@ class RadioUploader {
         await result;
         console.log(xhr.response);
         
-        e_entry.parentNode.removeChild(e_entry);
+        e_entry.remove();
     }
     
     set queued(val){
@@ -394,7 +394,7 @@ class Radio {
                 }
             });
             xhr.addEventListener("error", function(e){
-                reject(new Error("xhr error"));
+                reject(new Error("xhr error: " + method));
             });
             xhr.open(httpMethod, config.API_ENDPOINT + "/api/" + method);
             xhr.send(null);
