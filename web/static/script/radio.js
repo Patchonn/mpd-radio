@@ -98,6 +98,8 @@ class RadioUploader {
         this.upload = scheduler(this.upload.bind(this), config.CONCURRENT_UPLOADS);
         this.queued = 0;
         
+        this.e_popup.classList.toggle("hide", false);
+        
         document.body.addEventListener("dragenter", (function(e){
             e.stopPropagation();
             e.preventDefault();
@@ -342,7 +344,8 @@ class Radio {
         this.e_unmute.addEventListener("click", this.unmute.bind(this));
         
         this.updateInterval = config.UPDATE_INTERVAL;
-        this.uploader = new RadioUploader();
+        if(config.UPLOADS_ENABLED === true)
+            this.uploader = new RadioUploader();
         
         this.start();
     }

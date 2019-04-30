@@ -85,11 +85,6 @@ def mpd_update():
     mpd.update()
     mpd.disconnect()
 
-def mpd_add(track):
-    mpd = mpd_connect()
-    mpd.add(track)
-    mpd.disconnect()
-
 def mpd_list():
     mpd = mpd_connect()
     
@@ -101,6 +96,7 @@ def mpd_list():
     mpd.disconnect()
     return tracks
 
+# replace with a search
 def mpd_info():
     def process_tags(song):
         del song['last-modified']
@@ -134,6 +130,13 @@ def mpd_info():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_song():
+    if not app.config.get('UPLOADS_ENABLED', False):
+        return app.response_class(
+            response='{"error":"uploads are disabled"}',
+            status=403,
+            mimetype='application/json'
+        )
+    
     file = request.files.get('file', None)
     if file is None or file.filename == '':
         return app.response_class(
@@ -204,6 +207,7 @@ def config(ext):
             'WEBSITE_TITLE': app.config.get('WEBSITE_TITLE'),
             'API_ENDPOINT': app.config.get('API_ENDPOINT'),
             'AUDIO_SOURCE': app.config.get('AUDIO_SOURCE'),
+            'UPLOADS_ENABLED': app.config.get('CONCURRENT_UPLOADS'),
             'CONCURRENT_UPLOADS': app.config.get('CONCURRENT_UPLOADS'),
             'EXTRA_LINKS': app.config.get('EXTRA_LINKS')
         }),
