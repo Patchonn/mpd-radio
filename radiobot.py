@@ -21,7 +21,6 @@ class SongInfo(clients.mpd.SongInfo):
         host = config.get('MUSIC_HOST', None)
         if host is not None:
             self.url = '{}/{}'.format(host, urllib.parse.quote(self.filename))
-#
 
 class Vote(object):
     def __init__(self, song, nick=None, required=5):
@@ -56,7 +55,6 @@ class Vote(object):
     
     def __str__(self):
         return '{}/{}'.format(len(self.voted), self.required)
-#
 
 class IrcBot(object):
     def __init__(self, irc, mpd, extra):
@@ -396,8 +394,7 @@ class IrcBot(object):
             self._skip_vote.vote(nick)
         
         self._irc.privmsg(target, 'skip vote: {}'.format(self._skip_vote))
-    
-#
+
 
 def main():
     irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, password=config.get('IRC_PASS', None), ssl=True)
@@ -411,9 +408,7 @@ def main():
         bot._echo(None, config.IRC_CHANNEL, greeting)
         
     bot._loop()
-#
 
-import traceback
 if __name__ == '__main__':
     try:
         main()
