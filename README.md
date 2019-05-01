@@ -12,3 +12,7 @@ Right now each script works as a standalone.
 - database for full text search (or try using an updated mpd)
 - runtime config editor
 - attempt to merge everything into a single process to share resources
+
+## Attributions
+
+This project contains icons from [Font Awesome](https://fontawesome.com/) which were turned into a font using [IcoMoon](https://icomoon.io/app/).
