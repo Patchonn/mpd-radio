@@ -24,7 +24,6 @@ class IrcConnection(muirc.Connection):
                 self.pong(*(msg['params']))
             else:
                 yield msg
-#
 
 class Nick(object):
     def __init__(self, nick, proxy=None):
@@ -39,5 +38,4 @@ class Nick(object):
     
     def __hash__(self):
         return hash(self.nick)
-#
 

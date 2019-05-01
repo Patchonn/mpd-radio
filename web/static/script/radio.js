@@ -14,7 +14,7 @@ class slider {
         this.display = el.firstElementChild;
         this.cb = cb;
         
-        if(def) this.setWidth(def);
+        if(def && !isNaN(def)) this.setWidth(def);
         
         this.mouse_down = false;
         this.parent.addEventListener("mousedown", (ev) => {
@@ -99,6 +99,8 @@ class RadioUploader {
         this.upload = scheduler(this.upload.bind(this), config.CONCURRENT_UPLOADS);
         this.queued = 0;
         
+        this.e_popup.classList.toggle("hide", false);
+        
         document.body.addEventListener("dragenter", (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -178,7 +180,7 @@ class RadioUploader {
                 }
             }, false);
             xhr.addEventListener("error", function(e){
-                reject(Error(e));
+                reject(new Error(e));
             }, false);
         });
         
@@ -323,14 +325,14 @@ class Radio {
         this.recent = [];
         this.queue = [];
         
-        let vol = localStorage.getItem("volume");
-        if(vol) this.e_audio.element.volume = parseFloat(vol);
+        let vol = parseFloat(localStorage.getItem("volume"));
+        if(!isNaN(vol)) this.e_audio.volume = vol;
         new slider(document.getElementById("volume"), (vol) => {
             this.e_audio.element.volume = vol;
             localStorage.setItem("volume", vol);
         }, vol);
         
-        let muted = localStorage.getItem("muted");
+        let muted = localStorage.getItem("muted") === "true";
         if(muted) this.mute();
         
         this.e_play.listen("click", this.play.bind(this));
@@ -340,7 +342,8 @@ class Radio {
         this.e_unmute.listen("click", this.unmute.bind(this));
         
         this.updateInterval = config.UPDATE_INTERVAL;
-        this.uploader = new RadioUploader();
+        if(config.UPLOADS_ENABLED === true)
+            this.uploader = new RadioUploader();
         
         this.start();
     }
@@ -392,7 +395,7 @@ class Radio {
                 }
             });
             xhr.addEventListener("error", function(e){
-                reject(new Error("xhr error"));
+                reject(new Error("xhr error: " + method));
             });
             xhr.open(httpMethod, config.API_ENDPOINT + "/api/" + method);
             xhr.send(null);

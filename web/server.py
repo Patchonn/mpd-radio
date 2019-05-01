@@ -63,12 +63,10 @@ class TempFile(object):
         try:
             self.file.close()
         except: pass
-#
 
 class MyRequest(Request):
     def _get_file_stream(self, total_content_length, content_type, filename=None, content_length=None):
         return TempFile(filename)
-#
 app.request_class = MyRequest
 
 
@@ -80,18 +78,13 @@ def mpd_connect():
     if pw is not None:
         mpd.password(pw)
     return mpd
-#
+
 
 def mpd_update():
     mpd = mpd_connect()
     mpd.update()
     mpd.disconnect()
-#
-def mpd_add(track):
-    mpd = mpd_connect()
-    mpd.add(track)
-    mpd.disconnect()
-#
+
 def mpd_list():
     mpd = mpd_connect()
     
@@ -102,7 +95,8 @@ def mpd_list():
     
     mpd.disconnect()
     return tracks
-#
+
+# replace with a search
 def mpd_info():
     def process_tags(song):
         del song['last-modified']
@@ -132,10 +126,17 @@ def mpd_info():
     mpd.disconnect()
     
     return info
-#
+
 
 @app.route('/api/upload', methods=['POST'])
 def upload_song():
+    if not app.config.get('UPLOADS_ENABLED', False):
+        return app.response_class(
+            response='{"error":"uploads are disabled"}',
+            status=403,
+            mimetype='application/json'
+        )
+    
     file = request.files.get('file', None)
     if file is None or file.filename == '':
         return app.response_class(
@@ -179,7 +180,7 @@ def upload_song():
         status=200,
         mimetype='application/json'
     )
-#
+
 """
 @app.route('/api/list', methods=['GET'])
 def list_files():
@@ -188,8 +189,8 @@ def list_files():
         status=200,
         mimetype='application/json'
     )
-#
 """
+
 @app.route('/api/info', methods=['GET'])
 def info():
     return app.response_class(
@@ -197,7 +198,6 @@ def info():
         status=200,
         mimetype='application/json'
     )
-#
 
 @app.route('/api/config', methods=['GET'], defaults={'ext': ''})
 @app.route('/api/config<ext>', methods=['GET'])
@@ -207,13 +207,13 @@ def config(ext):
             'WEBSITE_TITLE': app.config.get('WEBSITE_TITLE'),
             'API_ENDPOINT': app.config.get('API_ENDPOINT'),
             'AUDIO_SOURCE': app.config.get('AUDIO_SOURCE'),
+            'UPLOADS_ENABLED': app.config.get('CONCURRENT_UPLOADS'),
             'CONCURRENT_UPLOADS': app.config.get('CONCURRENT_UPLOADS'),
             'EXTRA_LINKS': app.config.get('EXTRA_LINKS')
         }),
         status=200,
         mimetype='application/json'
     )
-#
 
 @app.route('/api/thumb/<filename>.jpg', methods=['GET'])
 def thumbnail(filename):
@@ -256,7 +256,6 @@ def thumbnail(filename):
     out.close()
     
     return send_file(output)
-#
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8088)

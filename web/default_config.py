@@ -10,6 +10,9 @@ FFMPEG = None
 MUSIC_FOLDER = None
 THUMBS_FOLDER = None
 
+
+UPLOADS_ENABLED = False
+
 # client config
 WEBSITE_NAME = 'radio'
 API_ENDPOINT = 'http://localhost' # /api/<method> is appended on top of this

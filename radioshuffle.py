@@ -151,7 +151,6 @@ class mpdshuffle(object):
                 if removed:
                     logger.debug('playlist removed tracks: %s', repr(removed))
                 self._enqueue(int(status['song']))
-#
 
 
 def main():
@@ -164,8 +163,6 @@ def main():
     
     shuf = mpdshuffle(mpd, config.PLAYLIST_BUFFER, config.PLAYLIST_WINDOW)
     shuf.shuffle()
-#
-
 
 if __name__ == '__main__':
     try:

@@ -13,7 +13,6 @@ def get_config(env):
         return Module(config_path)
     else:
         return Module()
-#
 
 def get_logger(name, level=logging.WARNING, filename=None):
     logger = logging.getLogger(name)
@@ -35,7 +34,6 @@ def get_logger(name, level=logging.WARNING, filename=None):
         logger.addHandler(file)
     
     return logger
-#
 
 class Module(object):
     def __init__(self, filename=None):
@@ -53,11 +51,9 @@ class Module(object):
     
     def get(self, name, default=None):
         return getattr(self.__module, name, default)
-#
 
 def id_generator(size=20, chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
-#
 
 
 class TimeDiff(object):
@@ -81,7 +77,6 @@ class TimeDiff(object):
     
     def __str__(self):
         return self._readable
-#
 
 
 

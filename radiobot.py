@@ -21,7 +21,6 @@ class SongInfo(clients.mpd.SongInfo):
         host = config.get('MUSIC_HOST', None)
         if host is not None:
             self.url = '{}/{}'.format(host, urllib.parse.quote(self.filename))
-#
 
 class Vote(object):
     def __init__(self, song, nick=None, required=5):
@@ -56,7 +55,6 @@ class Vote(object):
     
     def __str__(self):
         return '{}/{}'.format(len(self.voted), self.required)
-#
 
 class IrcBot(object):
     def __init__(self, irc, mpd, extra):
@@ -263,6 +261,13 @@ class IrcBot(object):
         else:
             self._irc.privmsg(target, 'nothing found')
     
+    def encore(self, nick, target):
+        current = self._mpd.currentsong()
+        info = SongInfo(current)
+        
+        self._mpd.addid(info.file, config.PLAYLIST_BUFFER + 1)
+        self._irc.privmsg(target, 'song will be replayed: {}'.format(info))
+    
     def _request(self, nick, target, info):
         logger.info('{} requested by {} on {}'.format(info, nick, target))
         last_request = self._request_timeout.get(nick, None)
@@ -273,7 +278,7 @@ class IrcBot(object):
             status = self._mpd.status()
             # only need the length
             playlist = list(self._mpd.playlist())
-            songid = self._mpd.addid(info.file, len(playlist) - config.PLAYLIST_BUFFER)
+            self._mpd.addid(info.file, len(playlist) - config.PLAYLIST_BUFFER)
             
             self._irc.privmsg(target, 'song was added to the queue: {}'.format(info))
             self._request_timeout[nick] = now
@@ -389,8 +394,7 @@ class IrcBot(object):
             self._skip_vote.vote(nick)
         
         self._irc.privmsg(target, 'skip vote: {}'.format(self._skip_vote))
-    
-#
+
 
 def main():
     irc = IrcConnection(config.IRC_HOST, config.IRC_PORT, config.IRC_NICK, password=config.get('IRC_PASS', None), ssl=True)
@@ -404,9 +408,7 @@ def main():
         bot._echo(None, config.IRC_CHANNEL, greeting)
         
     bot._loop()
-#
 
-import traceback
 if __name__ == '__main__':
     try:
         main()

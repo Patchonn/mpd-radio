@@ -13,7 +13,6 @@ class MpdCommand(object):
             self._conn.reconnect()
         
         return self._command(*args, **kwargs)
-#
 
 class MpdConnection(object):
     def __init__(self, host, port, password=None, iterate=False):
@@ -55,7 +54,6 @@ class MpdConnection(object):
     
     def __repr__(self):
         return self._mpd.__repr__()
-#
 
 class SongInfo(object):
     def __init__(self, info, elapsed=None):
@@ -107,4 +105,4 @@ class SongInfo(object):
     
     def __eq__(self, other):
         return isinstance(other, SongInfo) and self.file == other.file
-#
+
