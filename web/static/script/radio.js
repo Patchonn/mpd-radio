@@ -465,7 +465,8 @@ class Radio {
         
         // hide extra children
         for(let i = 0; i > diff; i--){
-            let entry = elements[i];
+            // could just always hide everything
+            let entry = elements[elements.length - 1 - i];
             entry.hide();
         }
         
