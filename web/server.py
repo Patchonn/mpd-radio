@@ -200,9 +200,9 @@ def info():
     )
 
 @app.route('/api/info/<filename>', methods=['GET'])
-def song_info():
+def song_info(filename):
     mpd = mpd_connect()
-    results = mpd.find('file', file.filename)
+    results = mpd.find('file', filename)
     mpd.disconnect()
     
     if len(results) == 0:
