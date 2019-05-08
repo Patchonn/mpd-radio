@@ -80,9 +80,9 @@ def mpd_connect():
     return mpd
 
 def process_tags(song):
-    del song['last-modified']
-    del song['pos']
-    del song['id']
+    song.pop('last-modified', None)
+    song.pop('pos', None)
+    song.pop('id', None)
     
     for tag, value in song.items():
        if isinstance(value, list):
