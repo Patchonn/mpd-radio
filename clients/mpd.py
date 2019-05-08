@@ -59,7 +59,7 @@ class SongInfo(object):
     def __init__(self, info, elapsed=None):
         self.info = self._collapse_tags(info)
         self.file = self.info['file']
-        self.filename = self.file[self.file.rindex('/') + 1:]
+        self.filename = self.file[self.file.rfind('/') + 1:]
         
         self.title = self.info.get('title', self.filename)
         self.artist = self.info.get('artist', None)

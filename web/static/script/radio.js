@@ -213,7 +213,7 @@ class SongInfo {
     constructor(info){
         this.info = info
         this.file = info.file;
-        this.filename = info.file.substr(info.file.indexOf("/") + 1);
+        this.filename = info.file.substr(info.file.lastIndexOf("/") + 1);
         this.url = config.API_ENDPOINT + "/music/" + this.filename;
         
         this.title = info.title ? info.title : this.filename;
