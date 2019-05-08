@@ -156,7 +156,7 @@ def upload_song():
         subsystem = list(mpd.fetch_idle())
     
     # get info on the new song
-    results = mpd.find('file', file.filename)
+    results = list(mpd.find('file', file.filename))
     
     mpd.disconnect()
     
@@ -202,7 +202,7 @@ def info():
 @app.route('/api/info/<filename>', methods=['GET'])
 def song_info(filename):
     mpd = mpd_connect()
-    results = mpd.find('file', filename)
+    results = list(mpd.find('file', filename))
     mpd.disconnect()
     
     if len(results) == 0:
