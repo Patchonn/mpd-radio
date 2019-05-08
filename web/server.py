@@ -79,39 +79,22 @@ def mpd_connect():
         mpd.password(pw)
     return mpd
 
-
-def mpd_update():
-    mpd = mpd_connect()
-    mpd.update()
-    mpd.disconnect()
-
-def mpd_list():
-    mpd = mpd_connect()
+def process_tags(song):
+    del song['last-modified']
+    del song['pos']
+    del song['id']
     
-    tracks = set()
-    for track in self.mpd.listall():
-        if 'file' in track:
-            tracks.add(track['file'])
+    for tag, value in song.items():
+       if isinstance(value, list):
+            song[tag] = ', '.join(set(value))
     
-    mpd.disconnect()
-    return tracks
+    filename = os.path.basename(song['file'])
+    song['thumb'] = '/api/thumb/{}.jpg'.format(filename)
+    
+    return song
 
-# replace with a search
+# replace with a search function
 def mpd_info():
-    def process_tags(song):
-        del song['last-modified']
-        del song['pos']
-        del song['id']
-        
-        for tag, value in song.items():
-           if isinstance(value, list):
-                song[tag] = ', '.join(set(value))
-        
-        filename = os.path.basename(song['file'])
-        song['thumb'] = '/api/thumb/{}.jpg'.format(filename)
-        
-        return song
-    #
     mpd = mpd_connect()
     status = mpd.status()
     plist = mpd.playlistinfo()
@@ -167,16 +150,24 @@ def upload_song():
     mpd = mpd_connect()
     mpd.update()
     
-    # wait for the db upate to finish (if this even works)
-    #subsystem = []
-    #while 'database' not in subsystem:
-    #    mpd.send_idle()
-    #    subsystem = list(mpd.fetch_idle())
+    subsystem = []
+    while 'database' not in subsystem:
+        mpd.send_idle()
+        subsystem = list(mpd.fetch_idle())
+    
+    # get info on the new song
+    results = mpd.find('file', file.filename)
     
     mpd.disconnect()
     
+    # TODO remove this and the verification
+    response = {'success': True}
+    
+    if len(results) > 0:
+        response['song'] = process_tags(results[0])
+    
     return app.response_class(
-        response='{"success":true}',
+        response=json.dumps(response),
         status=200,
         mimetype='application/json'
     )
@@ -184,8 +175,17 @@ def upload_song():
 """
 @app.route('/api/list', methods=['GET'])
 def list_files():
+    mpd = mpd_connect()
+    
+    files = set()
+    for track in self.mpd.listall():
+        if 'file' in track:
+            files.add(track['file'])
+    
+    mpd.disconnect()
+    
     return app.response_class(
-        response=json.dumps(mpd_list()),
+        response=json.dumps(files),
         status=200,
         mimetype='application/json'
     )
@@ -195,6 +195,25 @@ def list_files():
 def info():
     return app.response_class(
         response=json.dumps(mpd_info()),
+        status=200,
+        mimetype='application/json'
+    )
+
+@app.route('/api/info/<filename>', methods=['GET'])
+def song_info():
+    mpd = mpd_connect()
+    results = mpd.find('file', file.filename)
+    mpd.disconnect()
+    
+    if len(results) == 0:
+        return app.response_class(
+            response='{"error": "song not found"}',
+            status=404,
+            mimetype='application/json'
+        )
+    
+    return app.response_class(
+        response=json.dumps(process_tags(results[0])),
         status=200,
         mimetype='application/json'
     )
