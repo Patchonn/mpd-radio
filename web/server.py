@@ -207,7 +207,7 @@ def config(ext):
             'WEBSITE_TITLE': app.config.get('WEBSITE_TITLE'),
             'API_ENDPOINT': app.config.get('API_ENDPOINT'),
             'AUDIO_SOURCE': app.config.get('AUDIO_SOURCE'),
-            'UPLOADS_ENABLED': app.config.get('CONCURRENT_UPLOADS'),
+            'UPLOADS_ENABLED': app.config.get('UPLOADS_ENABLED'),
             'CONCURRENT_UPLOADS': app.config.get('CONCURRENT_UPLOADS'),
             'EXTRA_LINKS': app.config.get('EXTRA_LINKS')
         }),

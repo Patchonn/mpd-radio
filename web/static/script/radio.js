@@ -99,7 +99,7 @@ class RadioUploader {
         this.upload = scheduler(this.upload.bind(this), config.CONCURRENT_UPLOADS);
         this.queued = 0;
         
-        this.e_popup.classList.toggle("hide", false);
+        this.e_popup.toggleClass("hide", false);
         
         document.body.addEventListener("dragenter", (e) => {
             e.stopPropagation();
