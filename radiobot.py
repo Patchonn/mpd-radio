@@ -195,6 +195,14 @@ class IrcBot(object):
             else:
                 self._irc.privmsg(target, 'that command does not exist')
     
+    def stats(self, nick, target):
+        'display statistics'
+        stats = self._mpd.stats()
+        stats['db_playtime'] = common.TimeDiff(int(stats['db_playtime']))
+        stats['uptime'] = common.TimeDiff(int(stats['uptime']))
+        stats['playtime'] = common.TimeDiff(int(stats['playtime']))
+        self._irc.privmsg(target, 'songs: {songs} | total length: {db_playtime} | uptime: {playtime}'.format(**stats))
+    
     def playing(self, nick, target):
         'prints the currently playing song'
         status = self._mpd.status()

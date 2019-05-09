@@ -60,8 +60,11 @@ class TimeDiff(object):
     SECS = [86400, 3600, 60, 1]
     NAMES = ['days', 'hours', 'minutes', 'seconds']
     
-    def __init__(self, tf, ts):
-        self.diff = tf - ts
+    def __init__(self, tf, ts=None):
+        if ts is not None:
+            self.diff = tf - ts
+        else:
+            self.diff = tf
         
         rem = self.diff
         self._diffs = []
