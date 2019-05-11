@@ -10,14 +10,14 @@ function secToTime(seconds) {
 
 class slider {
     constructor(el, cb, def){
-        this.parent = el;
+        this.element = el;
         this.display = el.firstElementChild;
         this.cb = cb;
         
         if(def && !isNaN(def)) this.setWidth(def);
         
         this.mouse_down = false;
-        this.parent.addEventListener("mousedown", (ev) => {
+        this.element.addEventListener("mousedown", (ev) => {
             ev.preventDefault();
             console.log(ev);
             if(ev.button == 0){
@@ -37,8 +37,8 @@ class slider {
     }
     
     change(ev) {
-        let rel = Math.min(Math.max(ev.pageX - this.parent.offsetLeft, 0), this.parent.offsetWidth);
-        let percent = rel / this.parent.offsetWidth;
+        let rel = Math.min(Math.max(ev.pageX - this.element.offsetLeft, 0), this.element.offsetWidth);
+        let percent = rel / this.element.offsetWidth;
         this.setWidth(percent);
         this.cb(percent);
     }
@@ -326,7 +326,7 @@ class Radio {
         this.queue = [];
         
         let vol = parseFloat(localStorage.getItem("volume"));
-        if(!isNaN(vol)) this.e_audio.volume = vol;
+        if(!isNaN(vol)) this.e_audio.element.volume = vol;
         new slider(document.getElementById("volume"), (vol) => {
             this.e_audio.element.volume = vol;
             localStorage.setItem("volume", vol);
