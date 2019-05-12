@@ -156,6 +156,8 @@ class IrcBot(object):
         
         self._request_timeout = {}
         self._skip_vote = None
+        
+        self._encore_state = (None, 0)
     
     # commands
     
@@ -218,7 +220,6 @@ class IrcBot(object):
         
         info = SongInfo(current)
         
-        # TODO this url should come from somewhere else
         host = config.get('MUSIC_HOST', None)
         if host is not None:
             url = '{}/{}'.format(host, urllib.parse.quote(info.filename))
@@ -273,8 +274,15 @@ class IrcBot(object):
         current = self._mpd.currentsong()
         info = SongInfo(current)
         
-        self._mpd.addid(info.file, config.PLAYLIST_BUFFER + 1)
-        self._irc.privmsg(target, 'song will be replayed: {}'.format(info))
+        now = int(time.time())
+        if info.file == self._encore_state[0] and now < self._encore_state[1]:
+            self._irc.privmsg(target, 'you can\'t encore the same song twice in a row')
+            
+        else:
+            self._encore_state = (info.file, now + info.time * 2)
+            
+            self._mpd.addid(info.file, config.PLAYLIST_BUFFER + 1)
+            self._irc.privmsg(target, 'song will be replayed: {}'.format(info))
     
     def _request(self, nick, target, info):
         logger.info('{} requested by {} on {}'.format(info, nick, target))
