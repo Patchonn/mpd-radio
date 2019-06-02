@@ -167,6 +167,9 @@ class SongElement {
     hide() {
         this.e_container.toggleClass("hide", true);
     }
+    remove() {
+        this.e_element.remove();
+    }
     
     addButton(icon, label, callback) {
         this.e_icons
