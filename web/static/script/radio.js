@@ -315,7 +315,9 @@ class RadioUploader {
             info = await response;
             success = true;
         } catch(e) {
-            if(e.status === undefined || e.status != 409)
+            if(e.status !== undefined && e.status == 409)
+                entry.remove();
+            else
                 entry.error();
             console.log(e);
         }
