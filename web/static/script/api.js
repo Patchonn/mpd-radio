@@ -8,6 +8,13 @@ window.radio = window.radio || {};
 
 (function(radio) {
     
+    class APIError extends Error {
+        constructor(status, message) {
+            super(message);
+            this.status = status;
+        }
+    }
+    
     class SongInfo {
         constructor(info) {
             this.info = info;
@@ -63,7 +70,7 @@ window.radio = window.radio || {};
             xhr.addEventListener("load", function() {
                 if(xhr.readyState == 4) {
                     if(this.status != 200)
-                        reject(new Error("api error: " + this.responseText));
+                        reject(new APIError(this.status, this.responseText.toString()));
                     
                     resolve(JSON.parse(this.responseText));
                 }

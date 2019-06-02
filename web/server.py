@@ -175,7 +175,7 @@ def upload_song():
     if os.path.exists(dst):
         return app.response_class(
             response='{"error":"file already exists on the server"}',
-            status=403,
+            status=409,
             mimetype='application/json'
         )
     
@@ -202,10 +202,11 @@ def upload_song():
     if len(results) > 0:
         song = process_tags(results[0])
         
-        token = random_string(10)
-        timelimit = int(time.time()) + app.config.get('REQUEST_TIMEOUT', 300)
-        redis_set(token, '{}/{}'.format(song['file'], timelimit))
-        song['token'] = token
+        if app.config.get('REQUESTS_ENABLED', False):
+            token = random_string(10)
+            timelimit = int(time.time()) + app.config.get('REQUEST_TIMEOUT', 300)
+            redis_set(token, '{}/{}'.format(song['file'], timelimit))
+            song['token'] = token
         
         response['song'] = song
     
@@ -217,6 +218,9 @@ def upload_song():
 
 @app.route('/api/request/<token>', methods=['GET'])
 def request_song(token):
+    if not app.config.get('REQUESTS_ENABLED', False):
+        return app.response_class(status=404)
+    
     t = redis_delete(token)
     
     if t is not None:

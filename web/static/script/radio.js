@@ -315,8 +315,8 @@ class RadioUploader {
             info = await response;
             success = true;
         } catch(e) {
-            // need to check which error it is, don't retry if the file already exists
-            entry.error();
+            if(e.status === undefined || e.status != 409)
+                entry.error();
             console.log(e);
         }
         
@@ -325,11 +325,17 @@ class RadioUploader {
             
             let elem = new SongElement(this.e_list, true);
             elem.update(info);
-            elem.addButton("plus-square", "request", function() {
-                if(info.token !== undefined)
+            
+            if(info.token !== undefined) {
+                elem.addButton("plus-square", "request", function() {
                     radio.request(info.token);
-                this.remove();
-            });
+                    this.remove();
+                });
+            } else {
+                elem.addButton("times", "request", function() {
+                    this.remove();
+                });
+            }
         }
     }
 }
