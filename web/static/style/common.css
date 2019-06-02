@@ -230,6 +230,7 @@ a {
 .pl-icons .icon {
     float: left;
     color: white;
+    cursor: pointer;
 }
 .pl-icons:after {
     /* I don't think this is even needed, but leave it here for good measure */

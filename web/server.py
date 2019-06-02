@@ -100,7 +100,7 @@ def redis_delete(key):
     with r.pipeline() as pipe:
         pipe.get(key)
         pipe.delete(key)
-        return pipe.execute()[1]
+        return pipe.execute()[0]
 
 
 def mpd_connect():
@@ -204,8 +204,8 @@ def upload_song():
         
         token = random_string(10)
         timelimit = int(time.time()) + app.config.get('REQUEST_TIMEOUT', 300)
-        redis_set(token, song.file + '/' + timelimit)
-        song['token'] = song
+        redis_set(token, '{}/{}'.format(song['file'], timelimit))
+        song['token'] = token
         
         response['song'] = song
     
@@ -222,7 +222,7 @@ def request_song(token):
     if t is not None:
         filename, limit = t.rsplit('/', 1)
         
-        if int(time.time()) < limit:
+        if int(time.time()) < int(limit):
             mpd = mpd_connect()
             mpd_request(mpd, filename)
             mpd.disconnect()

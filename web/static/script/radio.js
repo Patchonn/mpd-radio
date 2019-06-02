@@ -94,10 +94,10 @@ function scheduler(task, concurrent){
 
 class SongElement {
     constructor(container, append){
-        append = append !== undefined ? append : false;
+        this.append = append !== undefined ? append : false;
         this.e_container = container;
         
-        if(append)
+        if(this.append)
             this.e_container = this.e_container.append("div");
         
         /*
@@ -168,7 +168,8 @@ class SongElement {
         this.e_container.toggleClass("hide", true);
     }
     remove() {
-        this.e_element.remove();
+        if(this.append)
+            this.e_container.remove();
     }
     
     addButton(icon, label, callback) {
