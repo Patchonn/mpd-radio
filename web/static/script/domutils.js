@@ -1,6 +1,6 @@
 
 // dom utils
-let du = {};
+window.du = window.du || {};
 
 (function(du){
     
@@ -88,6 +88,7 @@ let du = {};
             return new Element(selection);
         }
     };
+    du.query = du.select;
     du.id = function(id, doc) {
         doc = (doc !== undefined) ? doc : document;
         let element = doc.getElementById(id);
@@ -95,5 +96,5 @@ let du = {};
         return new Element(element);
     };
     
-})(du);
+})(window.du);
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>radio</title>
-<script type="text/javascript" src="script/config.js"></script>
 <script type="text/javascript" src="script/domutils.js"></script>
+<script type="text/javascript" src="script/api.js"></script>
 <script type="text/javascript" src="script/radio.js"></script>
 <link rel="stylesheet" href="style/default.css" />
 <link rel="stylesheet" href="style/common.css" />
@@ -35,7 +35,9 @@
         </div>
         
         <!-- TODO search bar somewhere here, aligned to the right -->
+        <!-- TODO upload button to the right of the search input (icon-upload) and a label to drop files on the page somewhere -->
     </header>
+    
     
     <div id="content">
         <div id="main">
@@ -53,17 +55,21 @@
                 <div class="pl-none">no tracks found</div>
                 <div class="pl-list hide"></div>
             </div>
+            
+            <div id="uploaded">
+                <div class="pl-header">uploads</div>
+                <div class="pl-list"></div>
+            </div>
+            
+            <div id="uploads">
+                <div id="progress-container"></div>
+                <div id="upload-queued"></div>
+            </div>
         </div>
     </div>
     
     
-    <footer>
-        <div id="upload" class="hide">
-            <div id="progress-container"></div>
-            <div id="upload-dialog">drop files on this page to upload</div>
-            <div id="upload-queued"></div>
-        </div>
-    </footer>
+    <footer></footer>
     
 </div>
 </body>

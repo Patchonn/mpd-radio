@@ -1,11 +1,14 @@
 
-const CONFIG_URL = "/api/config.json";
-
-// failsafe because javascript is amazing
-const UPDATE_INTERVAL = 10 * 1000;
-
 function secToTime(seconds) {
     return Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0");
+}
+
+function appendIcon(icon){
+    return function(el) {
+        el.append("i")
+            .toggleClass("icon", true)
+            .toggleClass("icon-" + icon, true);
+    };
 }
 
 class slider {
@@ -88,144 +91,6 @@ function scheduler(task, concurrent){
     };
 }
 
-// replace with a function that takes a drop area element and returns the scheduled upload function
-class RadioUploader {
-    constructor(){
-        this.e_popup = du.id("upload");
-        this.e_dialog = du.id("upload-dialog");
-        this.e_prog = du.id("progress-container");
-        this.e_queued = du.id("upload-queued");
-        
-        this.upload = scheduler(this.upload.bind(this), config.CONCURRENT_UPLOADS);
-        this.queued = 0;
-        
-        this.e_popup.toggleClass("hide", false);
-        
-        document.body.addEventListener("dragenter", (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            this.e_popup.toggleClass("file_hover", true);
-        });
-        
-        document.body.addEventListener("dragleave", (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            this.e_popup.toggleClass("file_hover", false);
-        });
-        
-        document.body.addEventListener("dragover", (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "copy";
-            this.e_popup.toggleClass("file_hover", true);
-        });
-        
-        document.body.addEventListener("drop", (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            this.e_popup.toggleClass("file_hover", false);
-            this.e_popup.toggleClass("loading", true);
-            
-            let files = e.target.files || e.dataTransfer.files;
-            for(let i = 0; i < files.length; i++){
-                this.queued++;
-                this.upload(files[i]);
-            }
-        });
-    }
-    
-    async upload(file){
-        this.queued--;
-        
-        let e_progress;
-        
-        let e_entry = this.e_prog.append("div")
-            .toggleClass("upload-entry", true)
-            .append("div")
-                .toggleClass("upload-filename", true)
-                .text(file.name)
-            .parent()
-            
-            .append("div")
-                .toggleClass("upload-progress", true)
-                .append("div")
-                    .call((e) => {e_progress = e;})
-                .parent()
-            .parent();
-        
-        /*
-        if(file.size > 500000000)
-            return;
-        */
-        
-        let form = new FormData();
-        form.append("file", file);
-        
-        let xhr = new XMLHttpRequest();
-        
-        xhr.upload.addEventListener("progress", function(e){
-            let percent = 0;
-            if(e.lengthComputable)
-                percent = Math.floor((e.loaded / e.total) * 100);
-            else
-                percent = 100;
-            
-            e_progress.style("width", percent.toString() + "%");
-        });
-        
-        let result = new Promise(function(resolve, reject){
-            xhr.addEventListener("load", function(e){
-                if(xhr.readyState == 4){
-                    resolve(xhr);
-                }
-            }, false);
-            xhr.addEventListener("error", function(e){
-                reject(new Error(e));
-            }, false);
-        });
-        
-        xhr.open("POST", config.API_ENDPOINT + "/api/upload", true);
-        xhr.send(form);
-        
-        await result;
-        console.log(xhr.response);
-        
-        e_entry.remove();
-    }
-    
-    set queued(val){
-        this.qd = val;
-        this.e_queued.text("queued files: " + this.qd);
-        if(this.qd){
-            this.e_queued.toggleClass("hide", false);
-            this.e_dialog.toggleClass("hide", true);
-        }else{
-            this.e_queued.toggleClass("hide", true);
-            this.e_dialog.toggleClass("hide", false);
-        }
-    }
-    get queued(){
-        return this.qd;
-    }
-}
-
-class SongInfo {
-    constructor(info){
-        this.info = info
-        this.file = info.file;
-        this.filename = info.file.substr(info.file.lastIndexOf("/") + 1);
-        this.url = config.API_ENDPOINT + "/music/" + this.filename;
-        
-        this.title = info.title ? info.title : this.filename;
-        this.artist = info.artist ? info.artist : "unknown artist";
-        this.album = info.album ? info.album : null; //"unknown album";
-        
-        this.thumb = config.API_ENDPOINT + info.thumb;
-        
-        this.time = parseInt(info.time);
-        this.timeStr = secToTime(parseInt(info.time));
-    }
-}
 
 class SongElement {
     constructor(container, append){
@@ -276,6 +141,11 @@ class SongElement {
         this.e_time =
             e_info.append("span")
                 .toggleClass("pl-time", true);
+        
+        // icons
+        this.e_icons =
+            this.e_container.append("span")
+                .toggleClass("pl-icons", true);
     }
     
     update(info){
@@ -297,30 +167,194 @@ class SongElement {
     hide() {
         this.e_container.toggleClass("hide", true);
     }
+    
+    addButton(icon, label, callback) {
+        this.e_icons
+            .append("i")
+                .toggleClass("icon", true)
+                .toggleClass("icon-" + icon, true)
+                .attr("title", label)
+                .listen("click", callback.bind(this));
+    }
+}
+
+class UploadEntry {
+    constructor(file, container, retry) {
+        this.failed = false;
+        this.file = file;
+        this.retry = retry;
+        
+        this.e_element = container.append("div");
+        
+        let desc = 
+            this.e_element
+                .toggleClass("upload-entry", true)
+                .append("div")
+                    .toggleClass("upload-description", true);
+        
+        desc.append("span")
+            .toggleClass("icons-set", true)
+            .call(appendIcon("file-upload"))
+            .call(appendIcon("exclamation-triangle"))
+            .call(appendIcon("upload"))
+        
+        desc.append("span")
+            .toggleClass("upload-filename", true)
+            .text(file.name);
+            
+        this.e_progress = 
+            this.e_element
+                .append("div")
+                    .toggleClass("upload-progress", true)
+                    .append("div");
+        
+        
+        this.e_element.listen("click", (e) => {
+            if(this.failed) {
+                /* // don't need this as we're just gonna remove this entry
+                this.failed = false;
+                this.e_element.toggleClass("upload-failed", false);
+                */
+                this.retry(this.file);
+                this.remove();
+            }
+        });
+    }
+    
+    updateProgress(percent) {
+        this.e_progress.style("width", percent.toString() + "%");
+    }
+    
+    error() {
+        this.failed = true;
+        this.e_element.toggleClass("upload-failed", true);
+    }
+    
+    remove() {
+        this.e_element.remove();
+    }
+}
+
+class RadioUploader {
+    constructor() {
+        this.e_popup = du.id("uploads");
+        this.e_prog = du.id("progress-container");
+        this.e_queued = du.id("upload-queued");
+        
+        this.e_list = du.query("#uploaded .pl-list");
+        
+        this.upload = scheduler(this.upload.bind(this), radio.config.CONCURRENT_UPLOADS);
+        this.queued = 0;
+        
+        this.e_popup.toggleClass("hide", false);
+        
+        document.body.addEventListener("dragenter", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this.e_popup.toggleClass("file_hover", true);
+        });
+        
+        document.body.addEventListener("dragleave", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this.e_popup.toggleClass("file_hover", false);
+        });
+        
+        document.body.addEventListener("dragover", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+            this.e_popup.toggleClass("file_hover", true);
+        });
+        
+        document.body.addEventListener("drop", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this.e_popup.toggleClass("file_hover", false);
+            this.e_popup.toggleClass("loading", true);
+            
+            let files = e.target.files || e.dataTransfer.files;
+            for(let i = 0; i < files.length; i++)
+                this.enqueue(files[i]);
+        });
+    }
+    
+    updateQueued() {
+        this.e_queued.text("queued files: " + this.queued);
+        if(this.queued > 0) {
+            this.e_queued.toggleClass("hide", false);
+        } else {
+            this.e_queued.toggleClass("hide", true);
+        }
+    }
+    enqueue(file) {
+        this.queued++;
+        this.updateQueued();
+        
+        this.upload(file);
+    }
+    dequeue() {
+        this.queued--;
+        this.updateQueued();
+    }
+    
+    async upload(file) {
+        this.dequeue();
+        
+        let entry = new UploadEntry(file, this.e_prog, this.upload);
+        
+        let response = radio.upload(file, entry.updateProgress.bind(entry));
+        
+        let success = false;
+        let info;
+        try {
+            info = await response;
+            success = true;
+        } catch(e) {
+            // need to check which error it is, don't retry if the file already exists
+            entry.error();
+            console.log(e);
+        }
+        
+        if(success) {
+            entry.remove();
+            
+            let elem = new SongElement(this.e_list, true);
+            elem.update(info);
+            elem.addButton("plus-square", "request", function() {
+                if(info.token !== undefined)
+                    radio.request(info.token);
+                this.remove();
+            });
+        }
+    }
 }
 
 // does this even warrant a class?
 class Radio {
     constructor(){
+        // this class is a mess
+        // change everything to classes
+        // separate each ui element into its own class
+        // the player should have a class
+        // each list should have a class as well
+        // the uploader can keep its class but needs a few changes
         this.e_audio = du.id("stream-player");
         
         this.e_elapsed = du.id("time-elapsed");
         this.e_length = du.id("time-length");
         this.e_progress = du.id("progress-bar");
         
-        this.e_currentSong = du.id("now-playing");
-        this.currentSong = new SongElement(this.e_currentSong);
-        
-        this.e_recent = du.id("recent");
-        this.e_queue = du.id("queue");
-        this.recent = [];
-        this.queue = [];
-        
         this.e_play = du.id("play-btn");
         this.e_pause = du.id("pause-btn");
-        
         this.e_mute = du.id("mute-btn");
         this.e_unmute = du.id("unmute-btn");
+        
+        this.e_currentSong = du.id("now-playing");
+        this.e_recent = du.id("recent");
+        this.e_queue = du.id("queue");
+        
+        this.currentSong = new SongElement(this.e_currentSong);
         
         this.recent = [];
         this.queue = [];
@@ -341,8 +375,8 @@ class Radio {
         this.e_mute.listen("click", this.mute.bind(this));
         this.e_unmute.listen("click", this.unmute.bind(this));
         
-        this.updateInterval = config.UPDATE_INTERVAL;
-        if(config.UPLOADS_ENABLED === true)
+        this.updateInterval = radio.config.UPDATE_INTERVAL;
+        if(radio.config.UPLOADS_ENABLED === true)
             this.uploader = new RadioUploader();
         
         this.start();
@@ -355,7 +389,7 @@ class Radio {
     }
     
     play(){
-        this.e_audio.element.firstElementChild.src = config.AUDIO_SOURCE + "?nocache=" + Date.now();
+        this.e_audio.element.firstElementChild.src = radio.config.AUDIO_SOURCE + "?nocache=" + Date.now();
         this.e_audio.element.load();
         this.e_audio.element.play();
         this.e_play.toggleClass("hide", true);
@@ -382,38 +416,16 @@ class Radio {
         this.e_unmute.toggleClass("hide", true);
     }
     
-    // info, list, add
-    makeRequest(httpMethod, method, params){
-        return new Promise((resolve, reject) => {
-            let xhr = new XMLHttpRequest();
-            xhr.addEventListener("load", function(){
-                if(xhr.readyState == 4){
-                    if(this.status != 200)
-                        reject(new Error("api error: " + this.responseText));
-                    
-                    resolve(JSON.parse(this.responseText));
-                }
-            });
-            xhr.addEventListener("error", function(e){
-                reject(new Error("xhr error: " + method));
-            });
-            xhr.open(httpMethod, config.API_ENDPOINT + "/api/" + method);
-            xhr.send(null);
-        });
-    }
-    async getInfo(){
-        return await this.makeRequest("GET", "info");
-    }
-    
     async updateInfo(){
         let old = this.info;
-        this.info = await this.getInfo();
+        this.info = await radio.getInfo();
         
         let curInfo = this.info.playlist[parseInt(this.info.status.song)];
         this.elapsed = Math.floor(parseFloat(this.info.status.elapsed) * 1000);
         this.lastTime = Date.now();
         if(!old || old.playlist[parseInt(old.status.song)].file != curInfo.file){
-            this.currentinfo = new SongInfo(curInfo);
+            // TODO remove SongInfo call, return objects from getInfo
+            this.currentinfo = new radio.SongInfo(curInfo);
             
             // update player info
             this.e_length.text(this.currentinfo.timeStr);
@@ -471,7 +483,8 @@ class Radio {
         }
         
         for(let i = 0; i < list.length; i++){
-            let info = new SongInfo(list[i]);
+            // TODO remove SongInfo call
+            let info = new radio.SongInfo(list[i]);
             let entry = elements[i];
             
             entry.show();
@@ -481,13 +494,13 @@ class Radio {
 }
 
 window.addEventListener("load", async function(){
-    window.config = await loadConfig(CONFIG_URL);
+    await radio.loadConfig();
     
-    document.title = config.WEBSITE_TITLE;
+    document.title = radio.config.WEBSITE_TITLE;
     
     let links = du.id("stream-links");
-    for(let i = 0; i < config.EXTRA_LINKS.length; i++) {
-        let entry = config.EXTRA_LINKS[i];
+    for(let i = 0; i < radio.config.EXTRA_LINKS.length; i++) {
+        let entry = radio.config.EXTRA_LINKS[i];
         let link = 
             links.append("a")
                 .attr("href", entry[1])
@@ -497,9 +510,6 @@ window.addEventListener("load", async function(){
         if(entry[3]) link.attr("download", true);
     }
     
-    if(config.UPDATE_INTERVAL === undefined || config.UPDATE_INTERVAL < UPDATE_INTERVAL)
-        config.UPDATE_INTERVAL = UPDATE_INTERVAL;
+    radio.mgr = new Radio();
     
-    window.radio = new Radio();
 });
-

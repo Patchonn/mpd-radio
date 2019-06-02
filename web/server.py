@@ -6,9 +6,12 @@ import json
 import fcntl
 import shutil
 import subprocess
+import random
+import time
 
 from flask import Flask, Request, jsonify, request, send_file
 from tempfile import mkstemp
+import redis
 
 from mpd import MPDClient, CommandError
 
@@ -69,6 +72,36 @@ class MyRequest(Request):
         return TempFile(filename)
 app.request_class = MyRequest
 
+def random_string(n, characters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
+    return ''.join(random.choice(characters) for _ in range(n))
+
+
+def redis_connect():
+    host = app.config.get('REDIS_HOST', 'localhost')
+    port = app.config.get('REDIS_PORT', 6379)
+    return redis.Redis(host=host, port=port, db=0, decode_responses=True)
+
+def redis_set(key, value):
+    key_prefix = app.config.get('REDIS_PREFIX', 'radio') + '--'
+    key = key_prefix + key
+    r = redis_connect()
+    return r.set(key, value)
+
+def redis_get(key):
+    key_prefix = app.config.get('REDIS_PREFIX', 'radio') + '--'
+    key = key_prefix + key
+    r = redis_connect()
+    return r.get(key)
+
+def redis_delete(key):
+    key_prefix = app.config.get('REDIS_PREFIX', 'radio') + '--'
+    key = key_prefix + key
+    r = redis_connect()
+    with r.pipeline() as pipe:
+        pipe.get(key)
+        pipe.delete(key)
+        return pipe.execute()[1]
+
 
 def mpd_connect():
     mpd = MPDClient()
@@ -78,6 +111,10 @@ def mpd_connect():
     if pw is not None:
         mpd.password(pw)
     return mpd
+
+def mpd_request(mpd, file):
+    playlist = list(mpd.playlist())
+    mpd.addid(file, len(playlist) - app.config.get('PLAYLIST_BUFFER', 0))
 
 def process_tags(song):
     song.pop('last-modified', None)
@@ -160,17 +197,37 @@ def upload_song():
     
     mpd.disconnect()
     
-    # TODO remove this and the verification
-    response = {'success': True}
+    response = {}
     
     if len(results) > 0:
-        response['song'] = process_tags(results[0])
+        song = process_tags(results[0])
+        
+        token = random_string(10)
+        timelimit = int(time.time()) + app.config.get('REQUEST_TIMEOUT', 300)
+        redis_set(token, song.file + '/' + timelimit)
+        song['token'] = song
+        
+        response['song'] = song
     
     return app.response_class(
         response=json.dumps(response),
         status=200,
         mimetype='application/json'
     )
+
+@app.route('/api/request/<token>', methods=['GET'])
+def request(token):
+    t = redis_delete(token)
+    
+    if t is not None:
+        filename, limit = t.rsplit('/', 1)
+        
+        if int(time.time()) < limit:
+            mpd = mpd_connect()
+            mpd_request(mpd, filename)
+            mpd.disconnect()
+    
+    return app.response_class(status=200)
 
 """
 @app.route('/api/list', methods=['GET'])
@@ -217,6 +274,8 @@ def song_info(filename):
         status=200,
         mimetype='application/json'
     )
+
+
 
 @app.route('/api/config', methods=['GET'], defaults={'ext': ''})
 @app.route('/api/config<ext>', methods=['GET'])

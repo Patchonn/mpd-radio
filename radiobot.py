@@ -291,7 +291,6 @@ class IrcBot(object):
         now = int(time.time())
         
         if last_request is None or now > next_request or nick == self._admin:
-            status = self._mpd.status()
             # only need the length
             playlist = list(self._mpd.playlist())
             self._mpd.addid(info.file, len(playlist) - config.PLAYLIST_BUFFER)

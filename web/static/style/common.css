@@ -74,7 +74,7 @@ a {
     background: var(--highlight);
 }
 
-.icon {
+.btn > .icon {
     display: block;
 }
 
@@ -183,6 +183,7 @@ a {
 }
 
 .pl-row {
+    position: relative;
     display: flex;
     flex-flow: row nowrap;
     
@@ -212,6 +213,28 @@ a {
     max-width: var(--album-art-size);
     max-height: var(--album-art-size);
 }
+.pl-icons {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    
+    box-sizing: border-box;
+    max-width: var(--album-art-size);
+    padding: 5px;
+    
+    background: rgba(0,0,0,0.5);
+}
+.pl-icons:empty {
+    display: none;
+}
+.pl-icons .icon {
+    float: left;
+    color: white;
+}
+.pl-icons:after {
+    /* I don't think this is even needed, but leave it here for good measure */
+    clear: both;
+}
 
 .pl-info {
     display: flex;
@@ -240,75 +263,17 @@ a {
 }
 
 /*
-@media only screen and (max-width: 1000px) {
-    #recent,
-    #queue {
-        flex: 0 0 100%;
-        margin: 0px;
-    }
-}
-*/
-/*
-.pl-title {
-    text-align: center;
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-.pl-none,
-.pl-list {
-    display: inline-block;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 5px;
-    padding: 2px 0px;
-}
-.pl-none {
-    padding: 7px 6px;
-    text-align: center;
-}
-
-.pl-row {
-    display: flex;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    border-top: 2px solid rgba(0, 0, 0, 0.05);
-}
-.pl-row:first-child {
-    border-top: none;
-}
-.pl-row > div {
-    flex: 3 0 0;
-    text-align: center;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    
-    margin: 0px 3px;
-}
-.pl-row > div:first-child {
-    margin-left: 6px;
-}
-.pl-row > div:last-child {
-    flex: 1 0 0;
-    margin-right: 6px;
-}
-*/
-
-/* align this on the right of the container */
 footer {
     margin-top: auto;
     margin-left: auto;
     margin-right: auto;
     width: 50%;
 }
+*/
 
-#upload {
-    margin-left: auto;
-    text-align: center;
+#uploads {
 }
-#upload.file_hover {
+#uploads.file_hover {
     display: block;
 }
 #upload.loading {
@@ -316,8 +281,31 @@ footer {
 }
 
 .upload-entry {
-    text-align: left;
     margin-bottom: 5px;
+}
+/* icons */
+.upload-entry .icon {
+    display: none;
+}
+.upload-entry:not(.upload-failed) .icon-file-upload {
+    display: inline;
+}
+.upload-entry.upload-failed:not(:hover) .icon-exclamation-triangle {
+    display: inline;
+}
+.upload-entry.upload-failed:hover .icon-upload {
+    display: inline;
+}
+
+.upload-description {
+    margin-bottom: .4em;
+}
+.upload-description > .icons-set {
+    margin-right: .4em;
+}
+.upload-filename {
+    overflow:hidden;
+    text-overflow: ellipsis;
 }
 
 .upload-progress {
@@ -327,16 +315,17 @@ footer {
     border-radius: 5px;
     overflow: hidden;
 }
-.upload-filename {
-    margin-bottom: 5px;
-}
 .upload-progress > div {
     height: 20px;
     background-color: var(--highlight);
     
     width: 0%; /* starting width */
 }
+/* or just change the color of the bar to red */
+.upload-entry.upload-failed .upload-progress {
+    display: none;
+}
 
-#upload-dialog {
+#upload-queued {
     margin: 15px 0px 5px;
 }
