@@ -216,7 +216,7 @@ def upload_song():
     )
 
 @app.route('/api/request/<token>', methods=['GET'])
-def request(token):
+def request_song(token):
     t = redis_delete(token)
     
     if t is not None:
