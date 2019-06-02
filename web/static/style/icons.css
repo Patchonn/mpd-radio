@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icons';
-  src:  url('fonts/icons.eot?azhbqo');
-  src:  url('fonts/icons.eot?azhbqo#iefix') format('embedded-opentype'),
-    url('fonts/icons.ttf?azhbqo') format('truetype'),
-    url('fonts/icons.woff?azhbqo') format('woff'),
-    url('fonts/icons.svg?azhbqo#icons') format('svg');
+  src:  url('fonts/icons.eot?tlyo63');
+  src:  url('fonts/icons.eot?tlyo63#iefix') format('embedded-opentype'),
+    url('fonts/icons.ttf?tlyo63') format('truetype'),
+    url('fonts/icons.woff?tlyo63') format('woff'),
+    url('fonts/icons.svg?tlyo63#icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -24,6 +24,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-plus-square:before {
+  content: "\e908";
+}
+.icon-upload:before {
+  content: "\e909";
+}
+.icon-exclamation-triangle:before {
+  content: "\e90a";
+}
 .icon-file-upload:before {
   content: "\e900";
 }
