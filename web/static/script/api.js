@@ -113,7 +113,7 @@ window.radio = window.radio || {};
             xhr.addEventListener("load", function(e) {
                 if(xhr.readyState == 4) {
                     if(xhr.status != 200) {
-                        reject(new Error("upload failed, status code: " + xhr.status));
+                        reject(new APIError(xhr.status, "upload failed, status code: " + xhr.status));
                         return;
                     }
                     resolve(new SongInfo(xhr.response.song));

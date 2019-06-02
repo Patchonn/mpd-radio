@@ -331,11 +331,10 @@ class RadioUploader {
                     radio.request(info.token);
                     this.remove();
                 });
-            } else {
-                elem.addButton("times", "request", function() {
-                    this.remove();
-                });
             }
+            elem.addButton("times", "remove", function() {
+                this.remove();
+            });
         }
     }
 }
