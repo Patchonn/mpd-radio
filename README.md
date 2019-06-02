@@ -5,7 +5,6 @@ Right now each script works as a standalone.
 
 ## TODO
 
-- better upload queue and config
 - mobile interface for the web ui
 - search and requesting from web ui
 - make `radioshuffle.py` just work in every situation
