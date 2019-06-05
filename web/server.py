@@ -75,6 +75,29 @@ app.request_class = MyRequest
 def random_string(n, characters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(characters) for _ in range(n))
 
+def mutagen_format(src, original=None):
+    import mutagen
+    f = mutagen.File(src, easy=True)
+    
+    title = f.get('title')
+    artist = f.get('artist')
+    album = f.get('album')
+    tracknumber = f.get('tracknumber')
+    extension = os.path.splitext(original if original is not None else src)
+    
+    # only format if title is defined
+    if title is not None:
+        name = ''
+        if artist       is not None: name += '{} - '.format(artist)
+        if album        is not None: name += '{} - '.format(album)
+        if tracknumber  is not None: name += '{} '.format(tracknumber)
+        name += title + extension
+        
+        return name
+        
+    else:
+        return None
+
 
 def redis_connect():
     host = app.config.get('REDIS_HOST', 'localhost')
@@ -165,21 +188,30 @@ def upload_song():
             mimetype='application/json'
         )
     
-    upload_path = app.config.get('MUSIC_FOLDER')
-    name = os.path.basename(file.filename)
+    src = file.stream.path
     
-    # TODO convert to opus with ffmpeg
-    # TODO rename file with mutagen
+    upload_path = app.config.get('MUSIC_FOLDER')
+    
+    base = os.path.basename(file.filename)
+    if app.config.get('RENAME_FILES', False):
+        name = mutagen_format(src, base)
+        
+        if name is None:
+            name = base
+        
+    else:
+        name = base
     
     dst = os.path.join(upload_path, name)
+    
+    # TODO convert to opus with ffmpeg
+    
     if os.path.exists(dst):
         return app.response_class(
             response='{"error":"file already exists on the server"}',
             status=409,
             mimetype='application/json'
         )
-    
-    src = file.stream.path
     
     shutil.move(src, dst)
     os.chmod(dst, 0o644)
@@ -193,7 +225,7 @@ def upload_song():
         subsystem = list(mpd.fetch_idle())
     
     # get info on the new song
-    results = list(mpd.find('file', file.filename))
+    results = list(mpd.find('file', name))
     
     mpd.disconnect()
     

@@ -17,6 +17,8 @@ THUMBS_FOLDER = None
 
 
 UPLOADS_ENABLED = False
+RENAME_FILES = False
+REQUESTS_ENABLED = False
 
 # client config
 WEBSITE_NAME = 'radio'
