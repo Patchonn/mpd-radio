@@ -219,8 +219,9 @@ a {
     bottom: 0;
     
     box-sizing: border-box;
-    max-width: var(--album-art-size);
+    width: var(--album-art-size);
     padding: 5px;
+    font-size: 18px;
     
     background: rgba(0,0,0,0.5);
 }
@@ -231,6 +232,9 @@ a {
     float: left;
     color: white;
     cursor: pointer;
+}
+.pl-icons .icon:not(:last-child) {
+    margin-right: 0.4em;
 }
 .pl-icons:after {
     /* I don't think this is even needed, but leave it here for good measure */
