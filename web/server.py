@@ -79,18 +79,18 @@ def mutagen_format(src, original=None):
     import mutagen
     f = mutagen.File(src, easy=True)
     
-    title = f.get('title')
-    artist = f.get('artist')
-    album = f.get('album')
-    tracknumber = f.get('tracknumber')
-    extension = os.path.splitext(original if original is not None else src)
+    title = f.get('title')[0]
+    artist = f.get('artist')[0]
+    album = f.get('album')[0]
+    tracknumber = f.get('tracknumber')[0]
+    extension = os.path.splitext(original if original is not None else src)[1]
     
     # only format if title is defined
     if title is not None:
         name = ''
         if artist       is not None: name += '{} - '.format(artist)
         if album        is not None: name += '{} - '.format(album)
-        if tracknumber  is not None: name += '{} '.format(tracknumber)
+        if tracknumber  is not None: name += '{:0>2} '.format(tracknumber)
         name += title + extension
         
         return name
