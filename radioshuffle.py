@@ -109,7 +109,21 @@ class mpdshuffle(object):
         self.max_window = int(self.total_songs * self.window_size)
         
         status = self.mpd.status()
+        if len(self.playlist()) == 0:
+            track = self._window_next()
+            self.mpd.add(track)
+            self.playlist.append(track)
+            # need to check if play() is needed
+            # all we need from here is that status returns the song we just added as the current one
+            #self.mpd.play()
+            
+            status = self.mpd.status()
+        
+        if status['state'] != 'play':
+            self.mpd.play()
+        
         self._enqueue(int(status['song']))
+        
         
         logger.info('starting shuffle with a %d window size and a buffer of %d songs on either side of the playlist',
                     self.max_window, self.buffer)
