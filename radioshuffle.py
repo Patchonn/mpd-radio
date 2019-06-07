@@ -113,14 +113,12 @@ class mpdshuffle(object):
             track = self._window_next()
             self.mpd.add(track)
             self.playlist.append(track)
-            # need to check if play() is needed
-            # all we need from here is that status returns the song we just added as the current one
-            #self.mpd.play()
-            
-            status = self.mpd.status()
+            # nothing should be playing after this block
         
         if status['state'] != 'play':
             self.mpd.play()
+            status = self.mpd.status()
+
         
         self._enqueue(int(status['song']))
         
@@ -134,6 +132,7 @@ class mpdshuffle(object):
             
             # if mpd stops playing, stop the script
             if status['state'] != 'play':
+                logger.warn('mpd stopped, exiting')
                 break
             
             if 'database' in subsystem:

@@ -7,7 +7,6 @@ Right now each script works as a standalone.
 
 - mobile interface for the web ui
 - search and requesting from web ui
-- make `radioshuffle.py` just work in every situation
 - database for full text search (or try using an updated mpd)
 - runtime config editor
 - attempt to merge everything into a single process to share resources
