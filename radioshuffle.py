@@ -132,10 +132,13 @@ class mpdshuffle(object):
             subsystem = list(self.mpd.idle())
             status = self.mpd.status()
             
+            # if mpd stops playing, stop the script
+            if status['state'] != 'play':
+                break
+            
             if 'database' in subsystem:
                 logger.info('database updated')
                 self._update()
-            
             
             if 'player' in subsystem:
                 logger.info('player state changed')
@@ -164,6 +167,7 @@ class mpdshuffle(object):
                 # replace removed tracks if applicable
                 if removed:
                     logger.debug('playlist removed tracks: %s', repr(removed))
+                
                 self._enqueue(int(status['song']))
 
 
