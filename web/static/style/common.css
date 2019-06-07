@@ -2,7 +2,9 @@
 /* layout */
 
 :root {
-    --album-art-size: 125px;
+    --pl-album-art-size: 125px;
+    --pl-font-size: 18px;
+    --pl-icon-size: 18px;
 }
 
 html,
@@ -155,11 +157,11 @@ a {
 
 #content {
     display: flex;
-    flex-flow: row norwap;
+    flex-flow: row nowrap;
 }
 
 #now-playing {
-    margin-top: 15px;
+    margin-top: 1em;
 }
 #main {
     flex: 1 1 auto;
@@ -187,7 +189,7 @@ a {
     display: flex;
     flex-flow: row nowrap;
     
-    font-size: 18px;
+    font-size: var(--pl-font-size);
     white-space: nowrap;
     margin-bottom: .5em;
 }
@@ -199,8 +201,8 @@ a {
     flex: 0 0 auto;
     position: relative;
     
-    width: var(--album-art-size);
-    height: var(--album-art-size);
+    width: var(--pl-album-art-size);
+    height: var(--pl-album-art-size);
     background-color: rgba(0, 0, 0, 0.05);
     margin-right: 15px;
 }
@@ -210,8 +212,8 @@ a {
     left: 50%;
     transform: translate(-50%, -50%);
     
-    max-width: var(--album-art-size);
-    max-height: var(--album-art-size);
+    max-width: var(--pl-album-art-size);
+    max-height: var(--pl-album-art-size);
 }
 .pl-icons {
     position: absolute;
@@ -219,9 +221,9 @@ a {
     bottom: 0;
     
     box-sizing: border-box;
-    width: var(--album-art-size);
+    width: var(--pl-album-art-size);
     padding: 5px;
-    font-size: 18px;
+    font-size: var(--pl-icon-size);
     
     background: rgba(0,0,0,0.5);
 }
@@ -247,7 +249,7 @@ a {
 }
 
 .pl-title {
-    font-size: 24px;
+    font-size: 1.333em;
     margin-bottom: 5px;
 }
 .pl-time {
@@ -255,13 +257,8 @@ a {
 }
 
 #side {
-    --album-art-size: 75px;
-}
-#side .pl-row {
-    font-size: 13px;
-}
-#side .pl-title {
-    font-size: 16px;
+    --pl-album-art-size: 75px;
+    --pl-font-size: 13px;
 }
 #side .pl-album {
     display: none;
@@ -333,4 +330,49 @@ footer {
 
 #upload-queued {
     margin: 15px 0px 5px;
+}
+
+
+/* small screens */
+@media only screen and (max-device-width: 800px) {
+    #content {
+        flex-flow: column nowrap;
+    }
+    #side {
+        width: auto;
+        margin-left: 0px;
+        --pl-album-art-size: 125px;
+        --pl-font-size: 18px;
+    }
+    #side .pl-album {
+        display: inline;
+    }
+}
+
+/* mobile */
+@media only screen and (max-device-width: 640px) {
+    #side,
+    :root {
+        --pl-album-art-size: 75px;
+        --pl-font-size: 13px;
+    }
+    #now-playing {
+        margin-top: .5em;
+    }
+    #player {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0px 10px;
+    }
+    .pl-album {
+        display: none;
+    }
+    .pl-header {
+        font-size: 16px;
+        border-width: 1px;
+    }
 }
