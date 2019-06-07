@@ -109,7 +109,7 @@ class mpdshuffle(object):
         self.max_window = int(self.total_songs * self.window_size)
         
         status = self.mpd.status()
-        if len(self.playlist()) == 0:
+        if len(self.playlist) == 0:
             track = self._window_next()
             self.mpd.add(track)
             self.playlist.append(track)
