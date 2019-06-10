@@ -151,6 +151,7 @@ class SongElement {
     update(info){
         if(this.lastInfo === undefined || this.lastInfo.file !== info.file){
             this.lastInfo = info;
+            this.e_container.attr("title", info.toString());
             this.e_artAnchor.attr("href", info.url);
             this.e_art.attr("src", info.thumb);
             this.e_title.text(info.title).attr("href", info.url);

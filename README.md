@@ -5,9 +5,8 @@ Right now each script works as a standalone.
 
 ## TODO
 
-- mobile interface for the web ui
 - search and requesting from web ui
-- database for full text search (or try using an updated mpd)
+- full text search (or try updating mpd)
 - runtime config editor
 - attempt to merge everything into a single process to share resources
 

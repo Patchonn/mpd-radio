@@ -27,10 +27,27 @@ window.radio = window.radio || {};
             this.artist = info.artist ? info.artist : "unknown artist";
             this.album = info.album ? info.album : null; //"unknown album";
             
+            this.tracknumber = parseInt(info.track);
+            if(isNaN(this.tracknumber)) this.tracknumber = null;
+            
             this.thumb = radio.config.API_ENDPOINT + info.thumb;
             
             this.time = parseInt(info.time);
             this.timeStr = secToTime(parseInt(info.time));
+        }
+        toString() {
+            let str = '';
+            
+            if(!this.info.title)
+                return this.filename;
+            
+            //if(this.tracknumber) str += this.tracknumber.toString().padStart(2, "0") + " ";
+            str += this.title + "\n";
+            if(this.artist) str += this.artist + "\n";
+            if(this.album) str += this.album + "\n";
+            str += this.timeStr;
+            
+            return str;
         }
     }
     radio.SongInfo = SongInfo;
