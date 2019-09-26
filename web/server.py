@@ -346,7 +346,7 @@ def thumbnail(filename):
     
     out = open(output, 'ab+')
     fcntl.flock(out.fileno(), fcntl.LOCK_EX)
-    out.seek(0)
+    out.seek(0, os.SEEK_END)
     
     size = out.tell()
     if size == 0:
