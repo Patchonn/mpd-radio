@@ -100,9 +100,12 @@ window.radio = window.radio || {};
         });
     }
     
-    radio.getInfo = function() {
-        // TODO convert everything to SongInfo
-        return makeRequest("GET", "info");
+    radio.info = async function() {
+        let info = await makeRequest("GET", "info");
+        for(let i = 0; i < info.playlist.length; i++) {
+            info.playlist[i] = new SongInfo(info.playlist[i]);
+        }
+        return info;
     }
     
     radio.request = function(token) {
