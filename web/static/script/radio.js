@@ -391,6 +391,8 @@ class Radio {
         if(radio.config.UPLOADS_ENABLED === true)
             this.uploader = new RadioUploader();
         
+        document.title = radio.config.WEBSITE_TITLE;
+        
         this.start();
     }
     
@@ -438,6 +440,9 @@ class Radio {
         this.lastTime = Date.now();
         if(!old || currentInfo.file != oldInfo.file) {
             this.currentInfo = currentInfo;
+            
+            // update document title
+            document.title = this.currentInfo.toString(false).replace(/\n/g, " - ") + " | " + radio.config.WEBSITE_TITLE;
             
             // update player info
             this.e_length.text(this.currentInfo.timeStr);
@@ -513,8 +518,6 @@ class Radio {
 
 window.addEventListener("load", async function(){
     await radio.loadConfig();
-    
-    document.title = radio.config.WEBSITE_TITLE;
     
     let links = du.id("stream-links");
     for(let i = 0; i < radio.config.EXTRA_LINKS.length; i++) {

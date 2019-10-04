@@ -35,17 +35,19 @@ window.radio = window.radio || {};
             this.time = parseInt(info.time);
             this.timeStr = secToTime(parseInt(info.time));
         }
-        toString() {
+        toString(includeTime) {
+            includeTime = includeTime !== undefined ? includeTime : true;
+            
             let str = '';
             
             if(!this.info.title)
                 return this.filename;
             
             //if(this.tracknumber) str += this.tracknumber.toString().padStart(2, "0") + " ";
-            str += this.title + "\n";
-            if(this.artist) str += this.artist + "\n";
-            if(this.album) str += this.album + "\n";
-            str += this.timeStr;
+            str += this.title;
+            if(this.artist) str += "\n" + this.artist;
+            if(this.album) str += "\n" + this.album;
+            if(includeTime) str += "\n" + this.timeStr;
             
             return str;
         }
