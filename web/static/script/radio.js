@@ -433,7 +433,7 @@ class Radio {
         this.info = await radio.info();
         
         let currentInfo = this.info.playlist[parseInt(this.info.status.song)];
-        let oldInfo = old.playlist[parseInt(old.status.song)];
+        let oldInfo = !!old && old.playlist[parseInt(old.status.song)];
         this.elapsed = Math.floor(parseFloat(this.info.status.elapsed) * 1000);
         this.lastTime = Date.now();
         if(!old || currentInfo.file != oldInfo.file) {
@@ -452,7 +452,7 @@ class Radio {
             this.updatePlaylist(this.e_recent, this.recent, recent);
             this.updatePlaylist(this.e_queue, this.queue, queue);
             
-        } else if(!!old && ld.playlist.length != this.info.playlist.length) {
+        } else if(!!old && old.playlist.length != this.info.playlist.length) {
             let song = parseInt(this.info.status.song);
             let recent = this.info.playlist.slice(0, song).reverse();
             let queue = this.info.playlist.slice(song + 1);
