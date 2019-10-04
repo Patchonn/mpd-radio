@@ -98,7 +98,7 @@ def mutagen_format(src, original=None):
             if len(name) > max_length:
                 name = name[:max_length]
             
-            # TODO do this correctly
+            # replace invalid characters
             name = name.replace('/', '_').replace('\\', '_')
             
             return name + extension
