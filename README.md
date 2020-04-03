@@ -6,7 +6,7 @@ Right now each script works as a standalone.
 ## TODO
 
 - search and requesting from web ui
-- full text search (or try updating mpd)
+- full text search (or try the new mpd search functionality)
 - runtime config editor
 - attempt to merge everything into a single process to share resources
 

@@ -21,7 +21,7 @@ window.radio = window.radio || {};
             this.file = info.file;
             this.token = info.token;
             this.filename = info.file.substr(info.file.lastIndexOf("/") + 1);
-            this.url = radio.config.API_ENDPOINT + "/music/" + this.filename;
+            this.url = radio.config.API_ENDPOINT + "/music/" + this.file;
             
             this.title = info.title ? info.title : this.filename;
             this.artist = info.artist ? info.artist : "unknown artist";
