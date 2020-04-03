@@ -391,6 +391,8 @@ class Radio {
         if(radio.config.UPLOADS_ENABLED === true)
             this.uploader = new RadioUploader();
         
+        document.title = radio.config.WEBSITE_TITLE;
+        
         this.start();
     }
     
@@ -430,22 +432,32 @@ class Radio {
     
     async updateInfo(){
         let old = this.info;
-        this.info = await radio.getInfo();
+        this.info = await radio.info();
         
-        let curInfo = this.info.playlist[parseInt(this.info.status.song)];
+        let currentInfo = this.info.playlist[parseInt(this.info.status.song)];
+        let oldInfo = !!old && old.playlist[parseInt(old.status.song)];
         this.elapsed = Math.floor(parseFloat(this.info.status.elapsed) * 1000);
         this.lastTime = Date.now();
-        if(!old || old.playlist[parseInt(old.status.song)].file != curInfo.file){
-            // TODO remove SongInfo call, return objects from getInfo
-            this.currentinfo = new radio.SongInfo(curInfo);
+        if(!old || currentInfo.file != oldInfo.file) {
+            this.currentInfo = currentInfo;
+            
+            // update document title
+            document.title = this.currentInfo.toString(false).replace(/\n/g, " - ") + " | " + radio.config.WEBSITE_TITLE;
             
             // update player info
-            this.e_length.text(this.currentinfo.timeStr);
+            this.e_length.text(this.currentInfo.timeStr);
             
             // update current track info
-            this.currentSong.update(this.currentinfo);
+            this.currentSong.update(this.currentInfo);
             
             // update playlists
+            let song = parseInt(this.info.status.song);
+            let recent = this.info.playlist.slice(0, song).reverse();
+            let queue = this.info.playlist.slice(song + 1);
+            this.updatePlaylist(this.e_recent, this.recent, recent);
+            this.updatePlaylist(this.e_queue, this.queue, queue);
+            
+        } else if(!!old && old.playlist.length != this.info.playlist.length) {
             let song = parseInt(this.info.status.song);
             let recent = this.info.playlist.slice(0, song).reverse();
             let queue = this.info.playlist.slice(song + 1);
@@ -457,7 +469,7 @@ class Radio {
         let diff = Date.now() - this.lastTime;
         this.lastTime = Date.now();
         
-        let total = this.currentinfo.time;
+        let total = this.currentInfo.time;
         this.elapsed += diff;
         let elapsedSec = secToTime(Math.floor(this.elapsed / 1000));
         this.e_elapsed.text(elapsedSec);
@@ -495,8 +507,7 @@ class Radio {
         }
         
         for(let i = 0; i < list.length; i++){
-            // TODO remove SongInfo call
-            let info = new radio.SongInfo(list[i]);
+            let info = list[i];
             let entry = elements[i];
             
             entry.show();
@@ -507,8 +518,6 @@ class Radio {
 
 window.addEventListener("load", async function(){
     await radio.loadConfig();
-    
-    document.title = radio.config.WEBSITE_TITLE;
     
     let links = du.id("stream-links");
     for(let i = 0; i < radio.config.EXTRA_LINKS.length; i++) {

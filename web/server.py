@@ -98,7 +98,7 @@ def mutagen_format(src, original=None):
             if len(name) > max_length:
                 name = name[:max_length]
             
-            # TODO do this correctly
+            # replace invalid characters
             name = name.replace('/', '_').replace('\\', '_')
             
             return name + extension
@@ -346,7 +346,7 @@ def thumbnail(filename):
     
     out = open(output, 'ab+')
     fcntl.flock(out.fileno(), fcntl.LOCK_EX)
-    out.seek(0)
+    out.seek(0, os.SEEK_END)
     
     size = out.tell()
     if size == 0:

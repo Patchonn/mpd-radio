@@ -1,9 +1,4 @@
 
-const CONFIG_URL = "/api/config.json";
-
-// failsafe because javascript is amazing
-const UPDATE_INTERVAL = 10 * 1000;
-
 window.radio = window.radio || {};
 
 (function(radio) {
@@ -35,17 +30,19 @@ window.radio = window.radio || {};
             this.time = parseInt(info.time);
             this.timeStr = secToTime(parseInt(info.time));
         }
-        toString() {
+        toString(includeTime) {
+            includeTime = includeTime !== undefined ? includeTime : true;
+            
             let str = '';
             
             if(!this.info.title)
                 return this.filename;
             
             //if(this.tracknumber) str += this.tracknumber.toString().padStart(2, "0") + " ";
-            str += this.title + "\n";
-            if(this.artist) str += this.artist + "\n";
-            if(this.album) str += this.album + "\n";
-            str += this.timeStr;
+            str += this.title;
+            if(this.artist) str += "\n" + this.artist;
+            if(this.album) str += "\n" + this.album;
+            if(includeTime) str += "\n" + this.timeStr;
             
             return str;
         }
@@ -100,9 +97,12 @@ window.radio = window.radio || {};
         });
     }
     
-    radio.getInfo = function() {
-        // TODO convert everything to SongInfo
-        return makeRequest("GET", "info");
+    radio.info = async function() {
+        let info = await makeRequest("GET", "info");
+        for(let i = 0; i < info.playlist.length; i++) {
+            info.playlist[i] = new SongInfo(info.playlist[i]);
+        }
+        return info;
     }
     
     radio.request = function(token) {

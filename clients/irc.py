@@ -10,8 +10,6 @@ class IrcConnection(muirc.Connection):
         self.user(nick, '0', '*', nick)
         
         for msg in self:
-            # TODO save motd?
-            
             # 376 => MOTD end of motd
             # 422 => MOTD is missing
             if msg['command'] == '376' or msg['command'] == '422':

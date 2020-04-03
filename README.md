@@ -5,9 +5,9 @@ Right now each script works as a standalone.
 
 ## TODO
 
+- full text search
 - search and requesting from web ui
-- full text search (or try the new mpd search functionality)
-- runtime config editor
+- shared config and runtime editor
 - attempt to merge everything into a single process to share resources
 
 ## Attributions
