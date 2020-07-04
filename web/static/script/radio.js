@@ -490,8 +490,6 @@ class Radio {
             empty.toggleClass("hide", true);
         }
         
-        // compare to this.recent and this.queue
-        // keep track of the 
         let diff = list.length - elements.length;
         
         // create missing children
@@ -500,7 +498,7 @@ class Radio {
         }
         
         // hide extra children
-        for(let i = 0; i > diff; i--){
+        for(let i = 0; i < -diff; i++){
             // could just always hide everything
             let entry = elements[elements.length - 1 - i];
             entry.hide();
