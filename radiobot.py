@@ -114,7 +114,7 @@ class IrcBot(object):
                 
             elif msg['command'] == '474':
                 # 474 => ban error
-                #{'nick': 'irc.neet.link', 'user': None, 'host': None, 'command': '474', 'params': ['radiobot', '#botdev', 'Cannot join channel (+b)']}
+                #{'nick': '...', 'user': None, 'host': None, 'command': '474', 'params': ['radiobot', '#botdev', 'Cannot join channel (+b)']}
                 logger.critical('I\'ve been banned, exiting')
                 break
                 
