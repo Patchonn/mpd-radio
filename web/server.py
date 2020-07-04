@@ -8,8 +8,9 @@ import shutil
 import subprocess
 import random
 import time
+import pathlib
 
-from flask import Flask, Request, jsonify, request, send_file
+from flask import Flask, Request, url_for, jsonify, request, send_file
 from tempfile import mkstemp
 import redis
 
@@ -156,7 +157,7 @@ def process_tags(song):
             song[tag] = ', '.join(set(value))
     
     filename = os.path.basename(song['file'])
-    song['thumb'] = '/api/thumb/{}.jpg'.format(filename)
+    song['thumb'] = url_for('thumbnail', filename=filename)
     
     return song
 
@@ -336,13 +337,16 @@ def config(ext):
         mimetype='application/json'
     )
 
-@app.route('/api/thumb/<filename>.jpg', methods=['GET'])
+@app.route('/api/thumb/<path:filename>.jpg', methods=['GET'])
 def thumbnail(filename):
-    path = app.config.get('MUSIC_FOLDER')
-    input = '{}/{}'.format(path, filename)
+    music_path = app.config.get('MUSIC_FOLDER')
+    input = '{}/{}'.format(music_path, filename)
     
     thumbs_path = app.config.get('THUMBS_FOLDER')
     output = '{}/{}.jpg'.format(thumbs_path, filename)
+    
+    # create directory for the thumbnail
+    pathlib.Path(output).parent.mkdir(parents=True, exist_ok=True)
     
     out = open(output, 'ab+')
     fcntl.flock(out.fileno(), fcntl.LOCK_EX)
