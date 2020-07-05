@@ -475,6 +475,12 @@ class Radio {
         this.e_elapsed.text(elapsedSec);
         this.e_progress.style("width", ((this.elapsed / 10) / total) + "%");
         
+        if(this.elapsed > (total + 1) * 1000){
+            console.log(this.elapsed);
+            console.log(total);
+            this.updateInfo();
+        }
+        
         requestAnimationFrame(this.updateProgress.bind(this));
     }
     
