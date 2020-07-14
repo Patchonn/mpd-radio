@@ -156,8 +156,7 @@ def process_tags(song):
        if isinstance(value, list):
             song[tag] = ', '.join(set(value))
     
-    filename = os.path.basename(song['file'])
-    song['thumb'] = url_for('thumbnail', filename=filename)
+    song['thumb'] = url_for('thumbnail', filename=song['file'])
     
     return song
 

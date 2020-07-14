@@ -22,7 +22,7 @@ class slider {
         this.mouse_down = false;
         this.element.addEventListener("mousedown", (ev) => {
             ev.preventDefault();
-            console.log(ev);
+            //console.log(ev);
             if(ev.button == 0){
                 this.mouse_down = true;
                 this.change(ev);
@@ -476,8 +476,6 @@ class Radio {
         this.e_progress.style("width", ((this.elapsed / 10) / total) + "%");
         
         if(this.elapsed > (total + 1) * 1000){
-            console.log(this.elapsed);
-            console.log(total);
             this.updateInfo();
         }
         
