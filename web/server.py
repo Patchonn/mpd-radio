@@ -76,33 +76,33 @@ app.request_class = MyRequest
 def random_string(n, characters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(characters) for _ in range(n))
 
+def sanitize(input, repl='_'):
+    if input == '..': return ''
+    return input.replace('/', repl).replace('\\', repl)[:250]
+
 def mutagen_format(src, original=None):
     import mutagen
     f = mutagen.File(src, easy=True)
     
     if f is not None:
-        title = f.get('title')
-        artist = f.get('artist')
-        album = f.get('album')
-        tracknumber = f.get('tracknumber')
+        title = sanitize(f.get('title')[0])
+        artist = sanitize(f.get('artist')[0])
+        album = sanitize(f.get('album')[0])
+        tracknumber = sanitize(f.get('tracknumber')[0].split('/')[0])
         extension = os.path.splitext(original if original is not None else src)[1]
         
         # only format if title is defined
         if title is not None:
             name = ''
-            if artist       is not None: name += '{} - '.format(', '.join(artist))
-            if album        is not None: name += '{} - '.format(', '.join(album))
-            if tracknumber  is not None: name += '{:0>2} '.format(tracknumber[0].split('/')[0])
-            name += ', '.join(title)
+            if artist       is not None: name += '{}/'.format(artist)
             
-            max_length = 200
-            if len(name) > max_length:
-                name = name[:max_length]
+            if album        is not None: name += '{}/'.format(album)
+            else:                        name += 'unknown-album/'
             
-            # replace invalid characters
-            name = name.replace('/', '_').replace('\\', '_')
+            if tracknumber  is not None: name += '{:0>2} '.format(tracknumber)
+            name += title + extension
             
-            return name + extension
+            return name
     
     return None
 
@@ -220,6 +220,7 @@ def upload_song():
             mimetype='application/json'
         )
     
+    pathlib.Path(dst).parent.mkdir(parents=True, exist_ok=True)
     shutil.move(src, dst)
     os.chmod(dst, 0o644)
     
